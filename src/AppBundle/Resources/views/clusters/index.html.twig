@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <h3>Clusters</h3>
+        <ul class="list-group">
+            {% for cluster in clusters %}
+                <li class="list-group-item">
+                    <h4>{{ cluster }}</h4>
+                    <hr />
+                    <div class="btn-group" role="group" aria-label="ClusterControl">
+                        <a class="btn btn-default" href="{{ path('keyspaces', { 'cluster': cluster }) }}">Connect</a>
+                        <a class="btn btn-danger" href="{{ path('clusters_remove', { 'cluster': cluster }) }}">Remove</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addClusterModal">Add</a>
+    </div>
+
+    <div class="modal fade" id="addClusterModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Add Cluster</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="status"></div>
+                    <form>
+                        <div class="form-group">
+                            <label for="host">Host</label>
+                            <input type="text" class="form-control" name="host" id="host" value="localhost">
+                        </div>
+                        <div class="form-group">
+                            <label for="port">Port</label>
+                            <input type="number" class="form-control" name="port" id="port" value="9042">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success processModalButton" data-target="{{ path('clusters_add') }}">Add Cluster</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+{% endblock %}

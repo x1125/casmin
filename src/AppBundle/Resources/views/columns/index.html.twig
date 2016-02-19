@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="container">
+        {% if response.status %}
+            <div class="row">
+                <div class="col-md-2">
+                    <table class="table">
+                        <tbody>
+                        {% for columnFamily in response.columnFamilies %}
+                            <tr>
+                                <td>
+                                    <a href="{{ path('columns', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnFamily': columnFamily.columnfamily_name }) }}">
+                                        {{ columnFamily.columnfamily_name }}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-10">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Index</th>
+                            <th>Index name</th>
+                            <th>Index options</th>
+                            <th>Index type</th>
+                            <th>type</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for column in response.columns %}
+                            <tr>
+                                <td>
+                                    {{ column.column_name }}
+                                </td>
+                                <td>{{ column.component_index }}</td>
+                                <td>{{ column.index_name }}</td>
+                                <td>{{ column.index_options }}</td>
+                                <td>{{ column.index_type }}</td>
+                                <td>{{ column.type }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-danger pull-right removeModalProcess">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td>
+                                <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addKeyspaceModal">Add</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="alert alert-danger" role="alert">Error: {{ response.message }}</div>
+        {% endif %}
+    </div>
+
+{% endblock %}

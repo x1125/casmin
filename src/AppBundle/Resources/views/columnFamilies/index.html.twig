@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="container">
+        <h3>Column Families</h3>
+
+        {% if response.status %}
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Column family name</th>
+                    <th>Type</th>
+                    <th>Comment</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for columnFamily in response.columnFamilies %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('columns', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnFamily': columnFamily.columnfamily_name }) }}">
+                                {{ columnFamily.columnfamily_name }}
+                            </a>
+                        </td>
+                        <td>{{ columnFamily.type }}</td>
+                        <td>{{ columnFamily.comment }}</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-danger pull-right removeModalProcess">
+                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td>
+                        <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addColumnFamilyModal">Add</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        {% else %}
+            <div class="alert alert-danger" role="alert">Error: {{ response.message }}</div>
+        {% endif %}
+    </div>
+
+    <div class="modal fade" id="addColumnFamilyModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Add ColumnFamily</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="status"></div>
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">ColumnFamily name</label>
+                                    <input type="text" class="form-control" name="name" id="name" placeholder="foo">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bloom_filter_fp_chance">Bloom filter fp chance</label>
+                                    <input type="number" step="any" class="form-control" name="bloom_filter_fp_chance" id="bloom_filter_fp_chance" value="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="caching">Caching</label>
+                                    <select name="caching" id="caching" class="form-control">
+                                        {% for caching in columnFamilyCachingTypes %}
+                                            <option value="{{ caching }}" {{ caching == columnFamilyCachingDefault ? 'selected' }}>{{ caching }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="comment">Comment</label>
+                                    <textarea class="form-control" name="comment" id="comment"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="compaction">Compaction</label>
+                                    <select name="compaction" id="compaction" class="form-control">
+                                        {% for compaction in columnFamilyCompactionTypes %}
+                                            <option value="{{ compaction }}" {{ compaction == columnFamilyCompactionDefault ? 'selected' }}>{{ compaction }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="compression">Compression</label>
+                                    <select name="compression" id="compression" class="form-control">
+                                        {% for compression in columnFamilyCompressionTypes %}
+                                            <option value="{{ compression }}" {{ compression == columnFamilyCompactionDefault ? 'selected' }}>{{ compression == '' ? 'None' : compression }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="dclocal_read_repair_chance">Dclocal read repair chance</label>
+                                    <input type="number" step="any" class="form-control" name="dclocal_read_repair_chance" id="dclocal_read_repair_chance" value="0.0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="gc_grace_seconds">Gc grace seconds</label>
+                                    <input type="number" class="form-control" name="gc_grace_seconds" id="gc_grace_seconds" value="864000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="read_repair_chance">Read repair chance</label>
+                                    <input type="number" step="any" class="form-control" name="read_repair_chance" id="read_repair_chance" value="0.1">
+                                </div>
+                                <div class="checkbox">
+                                    <label for="populate_io_cache_on_flush">
+                                        <input type="checkbox" name="populate_io_cache_on_flush" id="populate_io_cache_on_flush"> Populate io cache on flush
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label for="replicate_on_write">
+                                        <input type="checkbox" name="replicate_on_write" id="replicate_on_write" checked> Replicate on write
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="cluster" value="{{ app.request.get('cluster') }}">
+                        <input type="hidden" name="keyspace" value="{{ app.request.get('keyspace') }}">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success processModalButton" data-target="{{ path('keyspaces_add') }}">Add ColumnFamily</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+{% endblock %}

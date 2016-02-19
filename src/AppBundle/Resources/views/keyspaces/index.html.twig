@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <h3>Keyspaces</h3>
+
+        {% if response.status %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Keyspace name</th>
+                    <th>Durable writes</th>
+                    <th>Strategy class</th>
+                    <th>Strategy options</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for keyspace in response.keyspaces %}
+                <tr>
+                    <td>
+                        <a href="{{ path('columnFamilies', { 'cluster': app.request.get('cluster'), 'keyspace': keyspace.keyspace_name }) }}">
+                            {{ keyspace.keyspace_name }}
+                        </a>
+                    </td>
+                    <td>{{ keyspace.durable_writes }}</td>
+                    <td>{{ keyspace.strategy_class|split('.')|last }}</td>
+                    <td>{{ keyspace.strategy_options }}</td>
+                    <td>
+                        <a href="{{ path('keyspaces_remove', { 'cluster': app.request.get('cluster'), 'keyspace': keyspace.keyspace_name }) }}" class="btn btn-sm btn-danger pull-right removeModalProcess">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+            <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addKeyspaceModal">Add</a>
+        {% else %}
+            <div class="alert alert-danger" role="alert">Error: {{ response.message }}</div>
+        {% endif %}
+    </div>
+
+    <div class="modal fade" id="addKeyspaceModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Add Keyspace</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="status"></div>
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Keyspace name</label>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="foo">
+                        </div>
+                        <div class="form-group">
+                            <label for="class">Class</label>
+                            <select name="class" id="class" class="form-control">
+                                {% for keyspaceClass in keyspaceClasses %}
+                                    <option value="{{ keyspaceClass }}">{{ keyspaceClass }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group VariableKeyspaceInput SimpleStrategyInput">
+                            <label for="replication_factor">Replication factor</label>
+                            <input type="number" class="form-control" name="replication_factor" id="replication_factor" value="1">
+                        </div>
+                        <div class="form-group VariableKeyspaceInput NetworkTopologyStrategyInput hide">
+                            <label>Replications</label>
+                            <ul class="list-group">
+                                <li class="list-group-item" data-count="0">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" name="replication[0][datacenter]" class="form-control replicationDatacenter" placeholder="datacenter" />
+                                        </div>
+                                        <div class="col-md-5">
+
+                                            <input type="number" name="replication[0][factor]" class="form-control replicationFactor" placeholder="replication" />
+                                        </div>
+                                        <div class="col-md-1">
+                                            <a href="#" class="btn btn-sm btn-danger pull-right removeReplicationRow hide">
+                                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <a href="#" class="btn btn-sm btn-success addReplicationRow">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp;Add
+                            </a>
+                        </div>
+                        <div class="checkbox">
+                            <label for="durable_writes">
+                                <input type="checkbox" name="durable_writes" id="durable_writes" checked> Durable Writes
+                            </label>
+                        </div>
+                        <input type="hidden" name="cluster" value="{{ app.request.get('cluster') }}">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success processModalButton" data-target="{{ path('keyspaces_add') }}">Add Keyspace</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+{% endblock %}

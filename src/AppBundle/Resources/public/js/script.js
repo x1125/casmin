@@ -82,8 +82,68 @@ $(function(){
             .modal('show');
     });
 
-    $('#addColumnFamilyModal').on('show.bs.modal', function (e) {
+    var columnFamilyFieldId = 1;
+    $(document).on('click', '.addColumnFamilyField', function(e){
+        e.preventDefault();
 
+        var dummy = $('#columnFamilyFieldDummyRow').clone();
+
+        dummy
+            .removeAttr('id')
+            .attr('data-id', columnFamilyFieldId);
+        dummy.find('input[name="prefix"]').attr('name', 'prefix[' + columnFamilyFieldId + ']');
+
+        $('#columnFamilyFieldTable tbody').append(dummy);
+        columnFamilyFieldId++;
+    });
+
+    $(document).on('click', '.removeColumnFamilyField', function(e){
+        e.preventDefault();
+
+        $(this).parents('tr').remove();
+    });
+
+    $(document).on('change', '#columnFamilyFieldTable select[name="type"]', function(e){
+        e.preventDefault();
+
+        var type = $(this).val();
+        var addFields = 0;
+
+        if (type == 'set' || type == 'list' || type == 'tuple')
+            addFields = 1;
+        else if (type == 'map')
+            addFields = 2;
+
+        var dummyField = $(this).clone();
+
+        // clean up the old ones
+        var next = $(this).next();
+        if (next.length > 0 && next.hasClass('container-fluid'))
+            next.remove();
+
+        // early exit
+        if (addFields == 0)
+            return;
+
+        // create container for some spacing
+        var container = $('<div class="container-fluid" />');
+
+        // fill field fields
+        for (var i=0; i<addFields; i++)
+            container.append(dummyField.clone());
+
+        // add "add"-button
+        if (type == 'tuple')
+            container.append('<a href="#" class="btn btn-xs btn-success addDynamicFieldType"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>');
+
+        // display everything
+        $(this).after(container);
+    });
+
+    $(document).on('click', '.addDynamicFieldType', function(e){
+        e.preventDefault();
+
+        //$(this).before($(this).prevAll('select').clone());
     });
 
 });

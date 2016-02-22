@@ -46,7 +46,7 @@
     </div>
 
     <div class="modal fade" id="addColumnFamilyModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -117,6 +117,11 @@
                                         <input type="checkbox" name="replicate_on_write" id="replicate_on_write" checked> Replicate on write
                                     </label>
                                 </div>
+                                <div class="checkbox">
+                                    <label for="compact_storage">
+                                        <input type="checkbox" name="compact_storage" id="compact_storage"> Compact storage
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -131,49 +136,14 @@
                                 <th><i class="fa fa-circle-o"></i></th>
                                 <th>Type</th>
                                 <th>Name</th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>
-                                    <a href="#"><span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span></a>
-                                    <br />
-                                    <a href="#"><span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></a>
-                                </td>
-                                <td>
-                                    <div class="radio">
-                                        <label>
-                                            <input type="radio" name="prefix[]" value="primary" />
-                                        </label>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="radio">
-                                        <label>
-                                            <input type="radio" name="prefix[]" value="secondary" />
-                                        </label>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="radio">
-                                        <label>
-                                            <input type="radio" name="prefix[]" value="" checked />
-                                        </label>
-                                    </div>
-                                </td>
-                                <td>
-                                    <select class="form-control" name="type[]">
-                                        {% for columnFamilyDataType in columnFamilyDataTypes %}
-                                        <option value="{{ columnFamilyDataType }}">{{ columnFamilyDataType }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="text" name="field[]" class="form-control" />
-                                </td>
-                            </tr>
                             </tbody>
                         </table>
+
+                        <a class="btn btn-success addColumnFamilyField" href="#" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
 
                         <input type="hidden" name="cluster" value="{{ app.request.get('cluster') }}">
                         <input type="hidden" name="keyspace" value="{{ app.request.get('keyspace') }}">
@@ -186,5 +156,49 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
+
+    <table class="hide">
+        <tr id="columnFamilyFieldDummyRow" data-id="">
+            <td>
+                <a href="#"><span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span></a>
+                <br />
+                <a href="#"><span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></a>
+            </td>
+            <td>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="prefix" value="primary" />
+                    </label>
+                </div>
+            </td>
+            <td>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="prefix" value="secondary" />
+                    </label>
+                </div>
+            </td>
+            <td>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="prefix" value="" checked />
+                    </label>
+                </div>
+            </td>
+            <td>
+                <select class="form-control" name="type">
+                    {% for columnFamilyDataType in columnFamilyDataTypes %}
+                        <option value="{{ columnFamilyDataType }}">{{ columnFamilyDataType }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="text" name="field" class="form-control" />
+            </td>
+            <td>
+                <a href="#" class="btn btn-sm btn-danger removeColumnFamilyField"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+            </td>
+        </tr>
+    </table>
 
 {% endblock %}

@@ -10,8 +10,8 @@ class CassandraService {
     private $container, $cluster, $session;
 
     const keyspaceClasses = array('SimpleStrategy', 'NetworkTopologyStrategy');
-    const columnFamilyDataTypes = array('asci', 'bigint', 'blob', 'boolean', 'counter', 'decimal', 'double', 'float', 'inet', 'int',
-        'list', 'map', 'set', 'text', 'timestamp', 'uuid', 'timeuuid', 'varchar', 'varint');
+    const columnFamilyDataTypes = array('asci', 'bigint', 'blob', 'boolean', 'counter', 'decimal', 'double', 'float',
+        'inet', 'int', 'list', 'map', 'set', 'text', 'timestamp', 'tuple', 'uuid', 'timeuuid', 'varchar', 'varint');
     const columnFamilyCachingTypes = array('all', 'keys_only', 'rows_only', 'none');
     const columnFamilyCachingDefault = 'keys_only';
     const columnFamilyCompactionTypes = array('SizeTieredCompactionStrategy', 'DateTieredCompactionStrategy', 'LeveledCompactionStrategy');

@@ -82,4 +82,8 @@ $(function(){
             .modal('show');
     });
 
+    $('#addColumnFamilyModal').on('show.bs.modal', function (e) {
+
+    });
+
 });

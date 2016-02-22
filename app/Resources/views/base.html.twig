@@ -5,6 +5,7 @@
     <title>{% block title %}CasMin{% endblock %}</title>
     {% block stylesheets %}
         <link rel="stylesheet" href="{{ asset('assets/vendor/bootstrap/dist/css/bootstrap.min.css') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/vendor/font-awesome/css/font-awesome.min.css') }}" />
 
         {% stylesheets 'bundles/app/css/*' filter='cssrewrite' %}
         <link rel="stylesheet" href="{{ asset_url }}" />

@@ -120,6 +120,61 @@
                             </div>
                         </div>
 
+                        <hr />
+
+                        <table class="table" id="columnFamilyFieldTable">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th><i class="fa fa-key"></i></th>
+                                <th><i class="fa fa-hand-o-down"></i></th>
+                                <th><i class="fa fa-circle-o"></i></th>
+                                <th>Type</th>
+                                <th>Name</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>
+                                    <a href="#"><span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span></a>
+                                    <br />
+                                    <a href="#"><span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></a>
+                                </td>
+                                <td>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="prefix[]" value="primary" />
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="prefix[]" value="secondary" />
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="prefix[]" value="" checked />
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select class="form-control" name="type[]">
+                                        {% for columnFamilyDataType in columnFamilyDataTypes %}
+                                        <option value="{{ columnFamilyDataType }}">{{ columnFamilyDataType }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" name="field[]" class="form-control" />
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
                         <input type="hidden" name="cluster" value="{{ app.request.get('cluster') }}">
                         <input type="hidden" name="keyspace" value="{{ app.request.get('keyspace') }}">
                     </form>

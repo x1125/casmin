@@ -14,7 +14,7 @@ class CassandraService {
         'list', 'map', 'set', 'text', 'timestamp', 'uuid', 'timeuuid', 'varchar', 'varint');
     const columnFamilyCachingTypes = array('all', 'keys_only', 'rows_only', 'none');
     const columnFamilyCachingDefault = 'keys_only';
-    const columnFamilyCompactionTypes = array('SizeTieredCompactionStrategy', 'LeveledCompactionStrategy');
+    const columnFamilyCompactionTypes = array('SizeTieredCompactionStrategy', 'DateTieredCompactionStrategy', 'LeveledCompactionStrategy');
     const columnFamilyCompactionDefault = 'SizeTieredCompactionStrategy';
     const columnFamilyCompressionTypes = array('LZ4Compressor', 'SnappyCompressor', 'DeflateCompressor', '');
     const columnFamilyCompressionDefault = 'SnappyCompressor';
@@ -71,7 +71,7 @@ class CassandraService {
         }
 
         $query = sprintf(
-            'CREATE KEYSPACE %s WITH REPLICATION = { \'class\' : \'%s\', %s } AND DURABLE_WRITES = %s;',
+            'CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION = { \'class\' : \'%s\', %s } AND DURABLE_WRITES = %s;',
             $keyspaceConfig['name'],
             $keyspaceConfig['class'],
             $replication,

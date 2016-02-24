@@ -1,0 +1,8 @@
+Compression:
+    chunk_length_kb:
+        type: int
+        default: 64
+        unit: KB
+    crc_check_chance:
+        type: float
+        default: 1.0

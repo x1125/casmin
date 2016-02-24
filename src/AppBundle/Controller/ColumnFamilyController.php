@@ -5,6 +5,8 @@ namespace AppBundle\Controller;
 use AppBundle\Service\CassandraService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class ColumnFamilyController extends Controller
 {
@@ -38,13 +40,42 @@ class ColumnFamilyController extends Controller
 
         return $this->render('AppBundle:columnFamilies:index.html.twig', array(
             'response' => $response,
-            'columnFamilyDataTypes' => CassandraService::columnFamilyDataTypes,
-            'columnFamilyCachingTypes' => CassandraService::columnFamilyCachingTypes,
-            'columnFamilyCachingDefault' => CassandraService::columnFamilyCachingDefault,
-            'columnFamilyCompactionTypes' => CassandraService::columnFamilyCompactionTypes,
-            'columnFamilyCompactionDefault' => CassandraService::columnFamilyCompactionDefault,
-            'columnFamilyCompressionTypes' => CassandraService::columnFamilyCompressionTypes,
-            'columnFamilyCompressionDefault' => CassandraService::columnFamilyCompressionDefault
+            'ColumnFamily' => $this->get('config_service')->getConfiguration('ColumnFamily'),
+            'ColumnFamilyCompactionSubOptions' => $this->get('config_service')->getConfiguration('ColumnFamilyCompactionSubOptions'),
+            'ColumnFamilyCompressionSubOptions' => $this->get('config_service')->getConfiguration('ColumnFamilyCompressionSubOptions'),
         ));
+    }
+
+    /**
+     * @Route("/api/columnFamilies/add", name="columnFamily_add")
+     */
+    public function addColumnFamilyAction(Request $request)
+    {
+        $response = array(
+            'status' => false,
+            'message' => null
+        );
+
+        try
+        {
+            $params = $request->request->all();
+
+            list($host, $port) = explode(':', $params['cluster']);
+            $cassandra = new CassandraService($this->container, array(
+                'host' => $host,
+                'port' => $port
+            ));
+
+            $query = $cassandra->addColumnFamilyQuery($params);
+
+            $response['status'] = true;
+            $response['query'] = $query;
+        }
+        catch(\Exception $e)
+        {
+            $response['message'] = $e->getMessage();
+        }
+
+        return new JsonResponse($response);
     }
 }

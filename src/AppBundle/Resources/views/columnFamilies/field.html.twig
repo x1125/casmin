@@ -1,0 +1,30 @@
+{% if field.type == 'bool' %}
+    <div class="checkbox">
+        <label for="{{ name }}">
+            <input type="checkbox" name="{{ name }}" id="{{ name }}"> {{ name|capitalize }}
+        </label>
+    </div>
+{% else %}
+    <div class="form-group">
+        <label for="{{ name }}">{{ name|capitalize }}</label>
+
+        {% set hasSub = (field.sub is defined) ? true : false %}
+
+        {% if hasSub %}
+        <div class="row">
+            <div class="col-md-6">
+        {% endif %}
+
+        {% include 'AppBundle:columnFamilies:_field.html.twig' with { 'name': name, 'field': field } %}
+
+        {% if hasSub %}
+            </div>
+            <div class="col-md-6">
+                {% for subName, subField in field.sub %}
+                    {% include 'AppBundle:columnFamilies:_field.html.twig' with { 'name': subName, 'field': subField } %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endif %}

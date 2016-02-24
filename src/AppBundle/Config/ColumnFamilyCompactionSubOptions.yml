@@ -1,0 +1,89 @@
+SizeTieredCompactionStrategy:
+    bucket_high:
+        type: float
+        default: 1.5
+    bucket_low:
+        type: float
+        default: 0.5
+    cold_reads_to_omit:
+        type: float
+        default: 0.05
+    max_threshold:
+        type: int
+        default: 32
+    min_threshold:
+        type: int
+        default: 4
+    min_sstable_size:
+        type: int
+        default: 50
+        unit: MB
+    tombstone_compaction_interval:
+        type: int
+        default: 1
+        unit: ' day'
+    tombstone_threshold:
+        type: float
+        default: 0.2
+    enabled:
+        type: bool
+        default: true
+    only_purge_repaired_tombstones:
+        type: bool
+        default: false
+    unchecked_tombstone_compaction:
+        type: bool
+        default: false
+
+DateTieredCompactionStrategy:
+    base_time_seconds:
+        type: int
+        default: 3600
+    enabled:
+        type: bool
+        default: true
+    max_sstable_age_days:
+        type: bool
+        default: true
+    max_window_size_seconds:
+        type: int
+        default: 864000
+    max_threshold:
+        type: int
+        default: 32
+    min_threshold:
+        type: int
+        default: 4
+    timestamp_resolution:
+        type: enum
+        default: 'MICROSECONDS'
+        values: ['MICROSECONDS', 'MILLISECONDS']
+    tombstone_compaction_interval:
+        type: int
+        default: 1
+        unit: ' day'
+    tombstone_threshold:
+        type: float
+        default: 0.2
+    unchecked_tombstone_compaction:
+        type: bool
+        default: false
+
+LeveledCompactionStrategy:
+    enabled:
+        type: bool
+        default: true
+    sstable_size_in_mb:
+        type: int
+        default: 160
+        unit: MB
+    tombstone_compaction_interval:
+        type: int
+        default: 1
+        unit: ' day'
+    tombstone_threshold:
+        type: float
+        default: 0.2
+    unchecked_tombstone_compaction:
+        type: bool
+        default: false

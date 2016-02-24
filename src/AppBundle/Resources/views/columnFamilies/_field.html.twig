@@ -1,0 +1,20 @@
+{% if field.type == 'enum' %}
+    <select name="{{ name }}" id="{{ name }}" class="form-control" {{ field.disabled is defined ? 'disabled' }}>
+        {% for value in field.values %}
+            <option value="{{ value }}" {{ value == field.default ? 'selected' }}>{{ value }}</option>
+        {% endfor %}
+    </select>
+{% elseif field.type == 'varchar' %}
+    <input type="text" class="form-control" name="{{ name }}" id="{{ name }}" {{ field.disabled is defined ? 'disabled' }}>
+{% elseif field.type == 'text' %}
+    <textarea class="form-control" name="{{ name }}" id="{{ name }}" {{ field.disabled is defined ? 'disabled' }}></textarea>
+{% elseif field.type in ['int', 'float'] %}
+    {% if field.unit is defined %}
+        <div class="input-group">
+            <input type="number" step="{{ field.type == 'int' ? '1' : '0.1' }}" id="{{ name }}" name="{{ name }}" value="{{ field.default }}" class="form-control" {{ field.disabled is defined ? 'disabled' }}>
+            <div class="input-group-addon">{{ field.unit }}</div>
+        </div>
+    {% else %}
+        <input type="number" step="{{ field.type == 'int' ? '1' : '0.1' }}" name="{{ name }}" id="{{ name }}" value="{{ field.default }}" class="form-control" {{ field.disabled is defined ? 'disabled' }}>
+    {% endif %}
+{% endif %}

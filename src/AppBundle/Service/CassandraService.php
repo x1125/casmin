@@ -7,17 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class CassandraService {
 
-    private $container, $cluster, $session;
-
-    const keyspaceClasses = array('SimpleStrategy', 'NetworkTopologyStrategy');
-    const columnFamilyDataTypes = array('asci', 'bigint', 'blob', 'boolean', 'counter', 'decimal', 'double', 'float',
-        'inet', 'int', 'list', 'map', 'set', 'text', 'timestamp', 'tuple', 'uuid', 'timeuuid', 'varchar', 'varint');
-    const columnFamilyCachingTypes = array('all', 'keys_only', 'rows_only', 'none');
-    const columnFamilyCachingDefault = 'keys_only';
-    const columnFamilyCompactionTypes = array('SizeTieredCompactionStrategy', 'DateTieredCompactionStrategy', 'LeveledCompactionStrategy');
-    const columnFamilyCompactionDefault = 'SizeTieredCompactionStrategy';
-    const columnFamilyCompressionTypes = array('LZ4Compressor', 'SnappyCompressor', 'DeflateCompressor', '');
-    const columnFamilyCompressionDefault = 'SnappyCompressor';
+    private $container, $cluster, $session, $config;
 
     public function __construct(ContainerInterface $container, $clusterConfig = array())
     {
@@ -29,6 +19,12 @@ class CassandraService {
             ->build();
 
         $this->session = $this->cluster->connect();
+
+        $this->config = array(
+            'ColumnFamily' => $container->get('config_service')->getConfiguration('ColumnFamily'),
+            'ColumnFamilyCompactionSubOptions' => $container->get('config_service')->getConfiguration('ColumnFamilyCompactionSubOptions'),
+            'ColumnFamilyCompressionSubOptions' => $container->get('config_service')->getConfiguration('ColumnFamilyCompressionSubOptions'),
+        );
     }
 
     public function getKeyspaces($name = null)
@@ -46,7 +42,7 @@ class CassandraService {
         return $arr;
     }
 
-    public function addKeyspace($keyspaceConfig = array())
+    public function addKeyspaceQuery($keyspaceConfig = array())
     {
         if (in_array($keyspaceConfig['name'], $this->getKeyspaces('keyspace_name')))
             throw new \Exception('Keyspace already exists');
@@ -78,13 +74,92 @@ class CassandraService {
             @$keyspaceConfig['durable_writes'] ? 'true' : 'false'
         );
 
-        $this->session->execute(new Cassandra\SimpleStatement($query));
-        return true;
+        return $query;
     }
 
-    public function removeKeyspace($name)
+    public function removeKeyspaceQuery($name)
     {
-        $this->session->execute(new Cassandra\SimpleStatement('DROP KEYSPACE ' . $name));
+        return 'DROP KEYSPACE ' . $name;
+    }
+
+    public function addColumnFamilyQuery($familyColumnConfig = array())
+    {
+        $keyspace = $familyColumnConfig['keyspace'];
+
+        // check if the column family already exists
+        if (in_array($familyColumnConfig['name'], $this->getColumnFamilies($keyspace, 'columnfamily_name')))
+            throw new \Exception('ColumnFamily already exists');
+
+        // check for valid name
+        if (strlen($familyColumnConfig['name']) < 3)
+            throw new \Exception('ColumnFamily name is too short');
+
+        // require at least one field
+        if (count(@$familyColumnConfig['prefix']) < 1)
+            throw new \Exception('No fields given');
+
+        // check for empty or duplicate field names
+        $fieldNames = array();
+        foreach ($familyColumnConfig['field'] as $fieldName)
+        {
+            if (strlen($fieldName) < 1)
+                throw new \Exception('Empty field name given (Row #' . (count($fieldNames) + 1) . ')');
+
+            if (in_array($fieldName, $fieldNames))
+                throw new \Exception('Duplicate field name ("' . $fieldName . '")');
+
+            $fieldNames[] = $fieldName;
+        }
+
+        // count primary keys
+        $primaryKeyCount = 0;
+        foreach ($familyColumnConfig['prefix'] as $prefix)
+        {
+            if ($prefix == 'primary')
+                $primaryKeyCount++;
+        }
+
+        // check for primary key
+        if ($primaryKeyCount < 1)
+            throw new \Exception('You need at least one primary key');
+
+        $columnDefinitions = array();
+        $properties = array();
+
+        // parse all string properties
+        foreach (array('compaction', 'comment', 'compression', 'caching') as $key)
+        {
+            if (@$familyColumnConfig[$key])
+                $properties[] = "$key = '{$familyColumnConfig[$key]}'";
+        }
+
+        // parse all int/float properties
+        foreach (array('bloom_filter_fp_chance', 'dclocal_read_repair_chance', 'gc_grace_seconds', 'read_repair_chance') as $key)
+        {
+            if (@$familyColumnConfig[$key])
+                $properties[] = "$key = {$familyColumnConfig[$key]}";
+        }
+
+        // parse all bool properties
+        foreach (array('populate_io_cache_on_flush', 'replicate_on_write') as $key)
+            $properties[] = "$key = " . (@$familyColumnConfig[$key] ? 'true' : 'false');
+
+        $query = sprintf(
+            "CREATE TABLE\n%s.%s\n(%s)\nWITH\n%s",
+            $keyspace,
+            $familyColumnConfig['name'],
+            implode(",\n", $columnDefinitions),
+            implode(" AND\n", $properties)
+        );
+
+        $query .= "\r\n" . print_r($familyColumnConfig, true);
+
+        return $query;
+    }
+
+    public function execute($query)
+    {
+        $this->session->execute(new Cassandra\SimpleStatement($query));
         return true;
     }
 

@@ -1,0 +1,63 @@
+ColumnFamily:
+    name:
+        type: varchar
+    bloom_filter_fp_chance:
+        type: float
+        default: 0.01
+    caching_keys:
+        type: enum
+        default: 'ALL'
+        values: ['ALL', 'NONE']
+    caching_rows_per_partition:
+        type: enum
+        default: 'NONE'
+        values: ['ALL', 'NONE', 'number']
+        sub:
+            rows_per_partition_num:
+                type: int
+                default: 1
+                disabled: true
+    comment:
+        type: text
+    compaction:
+        type: enum
+        default: 'SizeTieredCompactionStrategy'
+        values: ['SizeTieredCompactionStrategy', 'DateTieredCompactionStrategy', 'LeveledCompactionStrategy']
+    compression:
+        type: enum
+        default: 'LZ4Compressor'
+        values: ['LZ4Compressor', 'SnappyCompressor', 'DeflateCompressor']
+    dclocal_read_repair_chance:
+        type: float
+        default: 0.1
+    default_time_to_live:
+        type: int
+        default: 0
+    gc_grace_seconds:
+        type: int
+        default: 864000
+
+    memtable_flush_period_in_ms:
+        type: int
+        default: 0
+    read_repair_chance:
+        type: float
+        default: 0.0
+    speculative_retry:
+        type: enum
+        default: 'Xpercentile'
+        values: ['ALWAYS', 'Xpercentile', 'Yms', 'NONE']
+        sub:
+            speculative_retry_value:
+                type: int
+                default: 99
+    compact_storage:
+        type: bool
+        default: false
+
+ColumnFamilyDataTypes: ['ascii', 'bigint', 'blob', 'boolean', 'counter', 'date', 'decimal', 'double', 'float', 'frozen', 'inet', 'int','list', 'map', 'set', 'smallint', 'text', 'time', 'timestamp', 'timeuuid', 'tinyint', 'tuple', 'uuid', 'varchar', 'varint']
+
+ColumnFamilyGrouping:
+    left: ['name', 'compaction', 'comment', 'compact_storage']
+    center: ['compression', 'caching_keys', 'caching_rows_per_partition', 'speculative_retry', 'gc_grace_seconds']
+    right: ['bloom_filter_fp_chance', 'dclocal_read_repair_chance', 'read_repair_chance', 'default_time_to_live', 'memtable_flush_period_in_ms']

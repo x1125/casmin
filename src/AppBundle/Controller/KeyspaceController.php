@@ -64,9 +64,10 @@ class KeyspaceController extends Controller
                 'port' => $port
             ));
 
-            $cassandra->addKeyspace($params);
+            $query = $cassandra->addKeyspaceQuery($params);
 
             $response['status'] = true;
+            $response['query'] = $query;
         }
         catch(\Exception $e)
         {
@@ -89,7 +90,8 @@ class KeyspaceController extends Controller
                 'port' => $port
             ));
 
-            $cassandra->removeKeyspace($keyspace);
+            $query = $cassandra->removeKeyspaceQuery($keyspace);
+            $cassandra->execute($query);
         }
         catch (\Exception $e)
         {

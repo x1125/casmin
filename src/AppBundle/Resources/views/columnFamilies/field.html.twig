@@ -1,12 +1,16 @@
+{% macro prettyName(name) %}
+    {{ name|replace('_', ' ')|capitalize }}
+{% endmacro %}
+
 {% if field.type == 'bool' %}
     <div class="checkbox">
         <label for="{{ name }}">
-            <input type="checkbox" name="{{ name }}" id="{{ name }}"> {{ name|capitalize }}
+            <input type="checkbox" name="{{ name }}" id="{{ name }}" {{ field.default ? 'checked' }}> {{ _self.prettyName(name) }}
         </label>
     </div>
 {% else %}
     <div class="form-group">
-        <label for="{{ name }}">{{ name|capitalize }}</label>
+        <label for="{{ name }}">{{ _self.prettyName(name) }}</label>
 
         {% set hasSub = (field.sub is defined) ? true : false %}
 

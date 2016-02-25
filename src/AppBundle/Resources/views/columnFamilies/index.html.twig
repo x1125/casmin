@@ -70,6 +70,25 @@
                                             {% set field = ColumnFamily.ColumnFamily[ColumnFamilyKey] %}
                                             {% include 'AppBundle:columnFamilies:field.html.twig' with { 'name': ColumnFamilyKey, 'field': field } %}
                                         {% endfor %}
+
+                                        {% if col == 'left' and loop.index < (ColumnFamily.ColumnFamilyGrouping[col]|length) %}
+                                            <div class="form-group">
+                                                <label for="clustering_order">Clustering order</label>
+                                                <div class="row">
+                                                    <div class="col-md-7">
+                                                        <select name="clustering_order" id="clustering_order" class="form-control">
+                                                            <option value="" data-keep> - </option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-5">
+                                                        <select name="clustering_order_direction" class="form-control">
+                                                            <option value="asc">ASC</option>
+                                                            <option value="desc">DESC</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -114,9 +133,10 @@
                                 {{ ColumnFamilyCompactionType != ColumnFamily.ColumnFamily.compaction.default ? 'hide' }}"
                                      data-type="{{ ColumnFamilyCompactionType }}">
                                     <div class="col-md-4">
+                                        {% set elemPerCol = (ColumnFamilyCompactionSubOptions[ColumnFamilyCompactionType]|length / 3)|round(0, 'ceil') %}
                                         {% for OptionName, OptionField in ColumnFamilyCompactionSubOptions[ColumnFamilyCompactionType] %}
                                             {% include 'AppBundle:columnFamilies:field.html.twig' with { 'name': OptionName, 'field': OptionField } %}
-                                            {% if loop.index % 3 == 0 %}
+                                            {% if loop.index % elemPerCol == 0 %}
                                                 </div><div class="col-md-4">
                                             {% endif %}
                                         {% endfor %}

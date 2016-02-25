@@ -26,7 +26,7 @@ ColumnFamily:
     compression:
         type: enum
         default: 'LZ4Compressor'
-        values: ['LZ4Compressor', 'SnappyCompressor', 'DeflateCompressor']
+        values: ['', 'LZ4Compressor', 'SnappyCompressor', 'DeflateCompressor']
     dclocal_read_repair_chance:
         type: float
         default: 0.1

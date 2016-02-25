@@ -1,4 +1,7 @@
 SizeTieredCompactionStrategy:
+    enabled:
+        type: bool
+        default: true
     bucket_high:
         type: float
         default: 1.5
@@ -8,16 +11,9 @@ SizeTieredCompactionStrategy:
     cold_reads_to_omit:
         type: float
         default: 0.05
-    max_threshold:
-        type: int
-        default: 32
-    min_threshold:
-        type: int
-        default: 4
-    min_sstable_size:
-        type: int
-        default: 50
-        unit: MB
+    unchecked_tombstone_compaction:
+        type: bool
+        default: false
     tombstone_compaction_interval:
         type: int
         default: 1
@@ -25,35 +21,33 @@ SizeTieredCompactionStrategy:
     tombstone_threshold:
         type: float
         default: 0.2
-    enabled:
-        type: bool
-        default: true
     only_purge_repaired_tombstones:
         type: bool
         default: false
-    unchecked_tombstone_compaction:
-        type: bool
-        default: false
-
-DateTieredCompactionStrategy:
-    base_time_seconds:
-        type: int
-        default: 3600
-    enabled:
-        type: bool
-        default: true
-    max_sstable_age_days:
-        type: bool
-        default: true
-    max_window_size_seconds:
-        type: int
-        default: 864000
-    max_threshold:
-        type: int
-        default: 32
     min_threshold:
         type: int
         default: 4
+    max_threshold:
+        type: int
+        default: 32
+    min_sstable_size:
+        type: int
+        default: 50
+        unit: MB
+
+DateTieredCompactionStrategy:
+    enabled:
+        type: bool
+        default: true
+    base_time_seconds:
+        type: int
+        default: 3600
+    max_window_size_seconds:
+        type: int
+        default: 864000
+    max_sstable_age_days:
+        type: bool
+        default: true
     timestamp_resolution:
         type: enum
         default: 'MICROSECONDS'
@@ -68,6 +62,12 @@ DateTieredCompactionStrategy:
     unchecked_tombstone_compaction:
         type: bool
         default: false
+    min_threshold:
+        type: int
+        default: 4
+    max_threshold:
+        type: int
+        default: 32
 
 LeveledCompactionStrategy:
     enabled:

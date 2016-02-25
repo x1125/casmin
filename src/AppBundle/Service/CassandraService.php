@@ -9,6 +9,8 @@ class CassandraService {
 
     private $container, $cluster, $session, $config;
 
+    const keyspaceClasses = array('SimpleStrategy', 'NetworkTopologyStrategy');
+
     public function __construct(ContainerInterface $container, $clusterConfig = array())
     {
         $this->container = $container;
@@ -126,26 +128,105 @@ class CassandraService {
         $columnDefinitions = array();
         $properties = array();
 
-        // parse all string properties
-        foreach (array('compaction', 'comment', 'compression', 'caching') as $key)
+        // parse column definitions
+        foreach ($familyColumnConfig['field'] as $index => $fieldName)
+            $columnDefinitions[] = $fieldName . ' ' . $familyColumnConfig['type'][$index];
+
+        // parse generic properties
+        $skipProperties = array('name', 'caching_keys', 'caching_rows_per_partition', 'compaction', 'compression', 'compact_storage');
+        foreach ($this->config['ColumnFamily']['ColumnFamily'] as $fieldName => $field)
         {
-            if (@$familyColumnConfig[$key])
-                $properties[] = "$key = '{$familyColumnConfig[$key]}'";
+            // skip some properties; we'll care about this later
+            if (in_array($fieldName, $skipProperties))
+                continue;
+
+            // the value
+            $value = @$familyColumnConfig[$fieldName];
+
+            // special condition for "speculative_retry"
+            if ($fieldName == 'speculative_retry' && in_array($value, array('Xpercentile', 'Yms')))
+            {
+                $value = str_replace('X', $familyColumnConfig['speculative_retry_value'], $value);
+                $value = str_replace('Y', $familyColumnConfig['speculative_retry_value'], $value);
+            }
+
+            // add property to array
+            $properties[] = sprintf(
+                '\'%s\' = %s',
+                $fieldName,
+                $this->formattedFieldValue($field, $value)
+            );
         }
 
-        // parse all int/float properties
-        foreach (array('bloom_filter_fp_chance', 'dclocal_read_repair_chance', 'gc_grace_seconds', 'read_repair_chance') as $key)
+        // caching
+        $cachingFields = array('caching_keys', 'caching_rows_per_partition');
+        $cachingValues = array();
+        foreach ($cachingFields as $cachingFieldName)
         {
-            if (@$familyColumnConfig[$key])
-                $properties[] = "$key = {$familyColumnConfig[$key]}";
-        }
+            $cachingField = $this->config['ColumnFamily']['ColumnFamily'][$cachingFieldName];
+            $cachingValue = $familyColumnConfig[$cachingFieldName];
 
-        // parse all bool properties
-        foreach (array('populate_io_cache_on_flush', 'replicate_on_write') as $key)
-            $properties[] = "$key = " . (@$familyColumnConfig[$key] ? 'true' : 'false');
+            // override field and value when using "number"
+            if ($cachingFieldName == 'caching_rows_per_partition' && $cachingValue == 'number')
+            {
+                $cachingField = $this->config['ColumnFamily']['ColumnFamily']['caching_rows_per_partition']['sub']['rows_per_partition_num'];
+                $cachingValue = $familyColumnConfig['rows_per_partition_num'];
+            }
+
+            $cachingValues[] = sprintf(
+                '\'%s\' = %s',
+                str_replace('caching_', '', $cachingFieldName),
+                $this->formattedFieldValue($cachingField, $cachingValue)
+            );
+        }
+        $cachingValue = "{\n" . implode(",\n", $cachingValues) . "\n}";
+        $properties[] = "caching = $cachingValue";
+
+        // compression
+        if (@$familyColumnConfig['compression'] == '')
+            $compressionValue = "''";
+        else
+        {
+            $compressionFields = $this->config['ColumnFamilyCompressionSubOptions']['Compression'];
+            $compressionValues = array();
+            foreach ($compressionFields as $compressionFieldName => $compressionField)
+                $compressionValues[] = sprintf(
+                    '\'%s\' = %s',
+                    $compressionFieldName,
+                    $this->formattedFieldValue($compressionField, $familyColumnConfig[$compressionFieldName])
+                );
+
+            $compressionValue = "{\n" . implode(",\n", $compressionValues) . "\n}";
+        }
+        $properties[] = "compression = $compressionValue";
+
+        // compaction
+        $compactionFields = $this->config['ColumnFamilyCompactionSubOptions'][$familyColumnConfig['compaction']];
+        $compactionValues = array();
+        foreach ($compactionFields as $compactionFieldName => $compactionField)
+            $compactionValues[] = sprintf(
+                '\'%s\' = %s',
+                $compactionFieldName,
+                $this->formattedFieldValue($compactionField, @$familyColumnConfig[$compactionFieldName])
+            );
+
+        $compactionValue = "{\n" . implode(",\n", $compactionValues) . "\n}";
+        $properties[] = "compaction = $compactionValue";
+
+        // compact_storage
+        if (@$familyColumnConfig['compact_storage'])
+            $properties[] = 'COMPACT STORAGE';
+
+        // clustering order
+        if (@$familyColumnConfig['clustering_order'] && in_array($familyColumnConfig['clustering_order'], $fieldNames))
+            $properties[] = sprintf(
+                'CLUSTERING ORDER BY (%s %s)',
+                $familyColumnConfig['clustering_order'],
+                @$familyColumnConfig['clustering_order_direction'] == 'asc' ? 'ASC' : 'DESC'
+            );
 
         $query = sprintf(
-            "CREATE TABLE\n%s.%s\n(%s)\nWITH\n%s",
+            "CREATE TABLE\n%s.%s\n(\n%s\n)\nWITH\n%s;",
             $keyspace,
             $familyColumnConfig['name'],
             implode(",\n", $columnDefinitions),
@@ -155,6 +236,18 @@ class CassandraService {
         $query .= "\r\n" . print_r($familyColumnConfig, true);
 
         return $query;
+    }
+
+    private function formattedFieldValue($field, $value)
+    {
+        if ($field['type'] == 'bool')
+            $fieldValue = $value ? 'true' : 'false';
+        elseif (in_array($field['type'], array('int', 'float')))
+            $fieldValue = $value;
+        else
+            $fieldValue = "'$value'";
+
+        return $fieldValue;
     }
 
     public function execute($query)

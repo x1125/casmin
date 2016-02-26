@@ -78,4 +78,31 @@ class ColumnFamilyController extends Controller
 
         return new JsonResponse($response);
     }
+
+    /**
+     * @Route("/columnFamilies/remove/{cluster}/{keyspace}/{columnfamily}", name="columnfamily_remove")
+     */
+    public function removeKeyspaceAction($cluster, $keyspace, $columnfamily)
+    {
+        try
+        {
+            list($host, $port) = explode(':', $cluster);
+            $cassandra = new CassandraService($this->container, array(
+                'host' => $host,
+                'port' => $port
+            ));
+
+            $query = $cassandra->removeColumnFamilyQuery($keyspace, $columnfamily);
+            $cassandra->execute($query);
+        }
+        catch (\Exception $e)
+        {
+            // TODO: output
+        }
+
+        return $this->redirectToRoute('columnFamilies', array(
+            'cluster' => $cluster,
+            'keyspace' => $keyspace
+        ));
+    }
 }

@@ -79,9 +79,14 @@ class CassandraService {
         return $query;
     }
 
-    public function removeKeyspaceQuery($name)
+    public function removeKeyspaceQuery($keyspace)
     {
-        return 'DROP KEYSPACE ' . $name;
+        return 'DROP KEYSPACE ' . $keyspace;
+    }
+
+    public function removeColumnFamilyQuery($keyspace, $columnFamily)
+    {
+        return sprintf('DROP TABLE %s.%s', $keyspace, $columnFamily);
     }
 
     public function addColumnFamilyQuery($familyColumnConfig = array())
@@ -101,36 +106,40 @@ class CassandraService {
             throw new \Exception('No fields given');
 
         // check for empty or duplicate field names
-        $fieldNames = array();
-        foreach ($familyColumnConfig['field'] as $fieldName)
+        $fields = array();
+        $pkeys = array();
+        $skeys = array();
+        foreach ($familyColumnConfig['field'] as $index => $fieldName)
         {
             if (strlen($fieldName) < 1)
-                throw new \Exception('Empty field name given (Row #' . (count($fieldNames) + 1) . ')');
+                throw new \Exception('Empty field name given (Row #' . (count($fields) + 1) . ')');
 
-            if (in_array($fieldName, $fieldNames))
+            if (in_array($fieldName, $fields))
                 throw new \Exception('Duplicate field name ("' . $fieldName . '")');
 
-            $fieldNames[] = $fieldName;
-        }
+            $fields[$fieldName] = $familyColumnConfig['type'][$index];
 
-        // count primary keys
-        $primaryKeyCount = 0;
-        foreach ($familyColumnConfig['prefix'] as $prefix)
-        {
-            if ($prefix == 'primary')
-                $primaryKeyCount++;
+            if ($familyColumnConfig['prefix'][$index] == 'primary')
+                $pkeys[] = $fieldName;
+            elseif ($familyColumnConfig['prefix'][$index] == 'secondary')
+                $skeys[] = $fieldName;
         }
 
         // check for primary key
-        if ($primaryKeyCount < 1)
+        if (count($pkeys) < 1)
             throw new \Exception('You need at least one primary key');
 
         $columnDefinitions = array();
         $properties = array();
 
-        // parse column definitions
-        foreach ($familyColumnConfig['field'] as $index => $fieldName)
-            $columnDefinitions[] = $fieldName . ' ' . $familyColumnConfig['type'][$index];
+        // build column definitions
+        foreach ($fields as $fieldName => $fieldType)
+            $columnDefinitions[] = $fieldName . ' ' . $fieldType;
+
+        // build index information
+        $pkeyInfo = count($pkeys) > 1 ? ('(' . implode(',', $pkeys) . ')') : $pkeys[0];
+        $skeyInfo = count($skeys) > 0 ? ($pkeyInfo . ', ' . implode(',', $skeys)) : $pkeyInfo;
+        $columnDefinitions[] = sprintf('PRIMARY KEY (%s)', $skeyInfo);
 
         // parse generic properties
         $skipProperties = array('name', 'caching_keys', 'caching_rows_per_partition', 'compaction', 'compression', 'compact_storage');
@@ -152,7 +161,7 @@ class CassandraService {
 
             // add property to array
             $properties[] = sprintf(
-                '\'%s\' = %s',
+                '%s = %s',
                 $fieldName,
                 $this->formattedFieldValue($field, $value)
             );
@@ -174,7 +183,7 @@ class CassandraService {
             }
 
             $cachingValues[] = sprintf(
-                '\'%s\' = %s',
+                '\'%s\': %s',
                 str_replace('caching_', '', $cachingFieldName),
                 $this->formattedFieldValue($cachingField, $cachingValue)
             );
@@ -188,10 +197,12 @@ class CassandraService {
         else
         {
             $compressionFields = $this->config['ColumnFamilyCompressionSubOptions']['Compression'];
-            $compressionValues = array();
+            $compressionValues = array(
+                "'sstable_compression': '" . $familyColumnConfig['compression'] . "'"
+            );
             foreach ($compressionFields as $compressionFieldName => $compressionField)
                 $compressionValues[] = sprintf(
-                    '\'%s\' = %s',
+                    '\'%s\': %s',
                     $compressionFieldName,
                     $this->formattedFieldValue($compressionField, $familyColumnConfig[$compressionFieldName])
                 );
@@ -202,10 +213,12 @@ class CassandraService {
 
         // compaction
         $compactionFields = $this->config['ColumnFamilyCompactionSubOptions'][$familyColumnConfig['compaction']];
-        $compactionValues = array();
+        $compactionValues = array(
+            "'class': '" . $familyColumnConfig['compaction'] . "'"
+        );
         foreach ($compactionFields as $compactionFieldName => $compactionField)
             $compactionValues[] = sprintf(
-                '\'%s\' = %s',
+                '\'%s\': %s',
                 $compactionFieldName,
                 $this->formattedFieldValue($compactionField, @$familyColumnConfig[$compactionFieldName])
             );
@@ -218,7 +231,7 @@ class CassandraService {
             $properties[] = 'COMPACT STORAGE';
 
         // clustering order
-        if (@$familyColumnConfig['clustering_order'] && in_array($familyColumnConfig['clustering_order'], $fieldNames))
+        if (@$familyColumnConfig['clustering_order'] && in_array($familyColumnConfig['clustering_order'], $fields))
             $properties[] = sprintf(
                 'CLUSTERING ORDER BY (%s %s)',
                 $familyColumnConfig['clustering_order'],
@@ -232,8 +245,6 @@ class CassandraService {
             implode(",\n", $columnDefinitions),
             implode(" AND\n", $properties)
         );
-
-        $query .= "\r\n" . print_r($familyColumnConfig, true);
 
         return $query;
     }
@@ -292,6 +303,13 @@ class CassandraService {
                 $arr[] = $row[$name];
             else
                 $arr[] = $row;
+        }
+
+        if (!$name)
+        {
+            usort($arr, function ($a, $b) {
+                return strcmp($a['component_index'], $b['component_index']);
+            });
         }
 
         return $arr;

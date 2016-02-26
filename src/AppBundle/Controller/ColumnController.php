@@ -42,4 +42,32 @@ class ColumnController extends Controller
             'response' => $response
         ));
     }
+
+    /**
+     * @Route("/columns/remove/{cluster}/{keyspace}/{columnfamily}/{column}", name="column_remove")
+     */
+    public function removeColumnAction($cluster, $keyspace, $columnfamily, $column)
+    {
+        try
+        {
+            list($host, $port) = explode(':', $cluster);
+            $cassandra = new CassandraService($this->container, array(
+                'host' => $host,
+                'port' => $port
+            ));
+
+            $query = $cassandra->removeColumnQuery($keyspace, $columnfamily, $column);
+            $cassandra->execute($query);
+        }
+        catch (\Exception $e)
+        {
+            // TODO: output
+        }
+
+        return $this->redirectToRoute('columns', array(
+            'cluster' => $cluster,
+            'keyspace' => $keyspace,
+            'columnFamily' => $columnfamily
+        ));
+    }
 }

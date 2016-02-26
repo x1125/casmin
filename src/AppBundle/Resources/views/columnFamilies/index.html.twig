@@ -26,19 +26,16 @@
                         <td>{{ columnFamily.type }}</td>
                         <td>{{ columnFamily.comment }}</td>
                         <td>
-                            <a href="#" class="btn btn-sm btn-danger pull-right removeModalProcess">
+                            <a href="{{ path('columnfamily_remove', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}" class="btn btn-sm btn-danger pull-right removeModalProcess">
                                 <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                             </a>
                         </td>
                     </tr>
                 {% endfor %}
-                <tr>
-                    <td>
-                        <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addColumnFamilyModal">Add</a>
-                    </td>
-                </tr>
                 </tbody>
             </table>
+
+            <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addColumnFamilyModal">Add</a>
 
         {% else %}
             <div class="alert alert-danger" role="alert">Error: {{ response.message }}</div>
@@ -146,179 +143,6 @@
                             </div>
 
                         </div>
-
-                        {#<div class="tab-content">
-                            <div role="tabpanel" class="tab-pane active" id="basic">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="name">Name</label>
-                                            <input type="text" class="form-control" name="name" id="name" placeholder="foo">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="compaction">Compaction</label>
-                                            <select name="compaction" id="compaction" class="form-control">
-                                                {% for compaction in columnFamilyCompactionTypes %}
-                                                    <option value="{{ compaction }}" {{ compaction == columnFamilyCompactionDefault ? 'selected' }}>{{ compaction }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="comment">Comment</label>
-                                            <textarea class="form-control" name="comment" id="comment"></textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="clustering_order">Clustering order</label>
-                                            <div class="row">
-                                                <div class="col-md-7">
-                                                    <select name="clustering_order" id="clustering_order" class="form-control">
-                                                        <option value="" data-keep> - </option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-5">
-                                                    <select name="clustering_order_direction" class="form-control">
-                                                        <option value="asc">ASC</option>
-                                                        <option value="desc">DESC</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="checkbox">
-                                            <label for="compact_storage">
-                                                <input type="checkbox" name="compact_storage" id="compact_storage"> Compact storage
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="compression">Compression</label>
-                                            <select name="compression" id="compression" class="form-control">
-                                                {% for compression in columnFamilyCompressionTypes %}
-                                                    <option value="{{ compression }}" {{ compression == columnFamilyCompactionDefault ? 'selected' }}>{{ compression == '' ? 'None' : compression }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="caching_keys">Caching (keys)</label>
-                                            <select name="caching[keys]" id="caching_keys" class="form-control">
-                                                <option value="ALL" selected>ALL</option>
-                                                <option value="NONE">NONE</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="caching_rows_per_partition">Caching (rows per partition)</label>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <select name="caching[rows_per_partition]" id="caching_rows_per_partition" class="form-control">
-                                                        <option value="ALL">ALL</option>
-                                                        <option value="number">number</option>
-                                                        <option value="NONE" selected>NONE</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <input type="number" name="caching[rows_per_partition_number]" value="1" class="form-control" disabled />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="speculative_retry">Speculative retry</label>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <select name="speculative_retry" id="speculative_retry" class="form-control">
-                                                        <option value="ALWAYS">ALWAYS</option>
-                                                        <option value="Xpercentile" selected>Xpercentile</option>
-                                                        <option value="Yms">Yms</option>
-                                                        <option value="NONE">NONE</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="input-group">
-                                                        <input type="number" name="speculative_retry_value" value="99" class="form-control" />
-                                                        <div class="input-group-addon">%</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="gc_grace_seconds">Gc grace</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" name="gc_grace_seconds" id="gc_grace_seconds" value="864000">
-                                                <div class="input-group-addon">sec</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="bloom_filter_fp_chance">Bloom filter fp chance</label>
-                                            <input type="number" step="0.01" class="form-control" name="bloom_filter_fp_chance" id="bloom_filter_fp_chance" value="0.01">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="dclocal_read_repair_chance">Dclocal read repair chance</label>
-                                            <input type="number" step="0.1" class="form-control" name="dclocal_read_repair_chance" id="dclocal_read_repair_chance" value="0.1">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="read_repair_chance">Read repair chance</label>
-                                            <input type="number" step="0.1" class="form-control" name="read_repair_chance" id="read_repair_chance" value="0.0">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="default_time_to_live">Default time to live</label>
-                                            <input type="number" step="1" class="form-control" name="default_time_to_live" id="default_time_to_live" value="0">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="memtable_flush_period_in_ms">Memtable flush period</label>
-                                            <div class="input-group">
-                                                <input type="number" step="1" class="form-control" name="memtable_flush_period_in_ms" id="memtable_flush_period_in_ms" value="0">
-                                                <div class="input-group-addon">ms</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div role="tabpanel" class="tab-pane" id="fields">
-                                <table class="table" id="columnFamilyFieldTable">
-                                    <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th><i class="fa fa-key"></i></th>
-                                        <th><i class="fa fa-hand-o-down"></i></th>
-                                        <th><i class="fa fa-circle-o"></i></th>
-                                        <th>Type</th>
-                                        <th>Name</th>
-                                        <th></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-
-                                <a class="btn btn-success addColumnFamilyField" href="#" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
-                            </div>
-                            <div role="tabpanel" class="tab-pane" id="advanced">
-                                <h4>Compression</h4>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="chunk_length_kb">Chunk length</label>
-                                            <div class="input-group">
-                                                <input type="number" step="1" class="form-control" name="chunk_length_kb" id="chunk_length_kb" value="64">
-                                                <div class="input-group-addon">kbyte</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="crc_check_chance">Crc check chance</label>
-                                            <input type="number" step="0.1" class="form-control" name="crc_check_chance" id="crc_check_chance" value="1.0">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr />
-
-                                <h4>Compaction</h4>
-                            </div>
-
-                        </div>#}
 
                         <input type="hidden" name="cluster" value="{{ app.request.get('cluster') }}">
                         <input type="hidden" name="keyspace" value="{{ app.request.get('keyspace') }}">

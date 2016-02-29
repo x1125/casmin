@@ -25,14 +25,9 @@ class ApiController extends Controller
         $cluster = @$params['cluster'];
         $query = @$params['query'];
 
-        list($host, $port) = explode(':', $cluster);
-
         try
         {
-            $cassandra = new CassandraService($this->container, array(
-                'host' => $host,
-                'port' => $port
-            ));
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
 
             $ret = $cassandra->execute($query);
             $response['status'] = true;

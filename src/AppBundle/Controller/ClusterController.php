@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Service\CassandraService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +25,8 @@ class ClusterController extends Controller
     {
         // replace this example code with whatever you need
         return $this->render('AppBundle:clusters:index.html.twig', array(
-            'clusters' => $this->getClusters()
+            'clusters' => $this->getClusters(),
+            'cassandraVersions' => CassandraService::cassandraVersions
         ));
     }
 
@@ -53,7 +55,7 @@ class ClusterController extends Controller
         try
         {
             $params = $request->request->all();
-            $config = $params['host'] . ':' . $params['port'];
+            $config = sprintf('%s:%s:%s', $params['host'], $params['port'], $params['version']);
 
             if (in_array($config, $this->getClusters()))
                 throw new \Exception('Entry already exists');

@@ -20,14 +20,9 @@ class ColumnController extends Controller
             'message' => null
         );
 
-        list($host, $port) = explode(':', $cluster);
-
         try
         {
-            $cassandra = new CassandraService($this->container, array(
-                'host' => $host,
-                'port' => $port
-            ));
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
 
             $response['columnFamilies'] = $cassandra->getColumnFamilies($keyspace);
             $response['columns'] = $cassandra->getColumns($keyspace, $columnFamily);
@@ -50,11 +45,7 @@ class ColumnController extends Controller
     {
         try
         {
-            list($host, $port) = explode(':', $cluster);
-            $cassandra = new CassandraService($this->container, array(
-                'host' => $host,
-                'port' => $port
-            ));
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
 
             $query = $cassandra->removeColumnQuery($keyspace, $columnfamily, $column);
             $cassandra->execute($query);

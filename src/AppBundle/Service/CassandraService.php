@@ -11,6 +11,25 @@ class CassandraService {
 
     const keyspaceClasses = array('SimpleStrategy', 'NetworkTopologyStrategy');
 
+    const cassandraVersions = array(
+        '2.2',
+        '3.3'
+    );
+
+    public static function clusterConfig($cluster)
+    {
+        $clusterConfig = explode(':', $cluster);
+
+        if (count($clusterConfig) !== 3)
+            throw new \Exception('Invalid amount of cluster parameters');
+
+        return array(
+            'host' => $clusterConfig[0],
+            'port' => $clusterConfig[1],
+            'version' => $clusterConfig[2]
+        );
+    }
+
     public function __construct(ContainerInterface $container, $clusterConfig = array())
     {
         $this->container = $container;
@@ -21,6 +40,10 @@ class CassandraService {
             ->build();
 
         $this->session = $this->cluster->connect();
+        $this->version = $clusterConfig['version'];
+
+        if (!in_array($this->version, self::cassandraVersions))
+            throw new \Exception('Unknown cassandra version (' . $this->version . ')');
 
         $this->config = array(
             'ColumnFamily' => $container->get('config_service')->getConfiguration('ColumnFamily'),
@@ -87,6 +110,11 @@ class CassandraService {
     public function removeColumnFamilyQuery($keyspace, $columnFamily)
     {
         return sprintf('DROP TABLE %s.%s', $keyspace, $columnFamily);
+    }
+
+    public function removeColumnQuery($keyspace, $columnFamily, $column)
+    {
+
     }
 
     public function addColumnFamilyQuery($familyColumnConfig = array())

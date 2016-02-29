@@ -21,14 +21,9 @@ class KeyspaceController extends Controller
             'message' => null
         );
 
-        list($host, $port) = explode(':', $cluster);
-
         try
         {
-            $cassandra = new CassandraService($this->container, array(
-                'host' => $host,
-                'port' => $port
-            ));
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
 
             $response['keyspaces'] = $cassandra->getKeyspaces();
             $response['status'] = true;
@@ -58,11 +53,7 @@ class KeyspaceController extends Controller
         {
             $params = $request->request->all();
 
-            list($host, $port) = explode(':', $params['cluster']);
-            $cassandra = new CassandraService($this->container, array(
-                'host' => $host,
-                'port' => $port
-            ));
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($params['cluster']));
 
             $query = $cassandra->addKeyspaceQuery($params);
 
@@ -84,11 +75,7 @@ class KeyspaceController extends Controller
     {
         try
         {
-            list($host, $port) = explode(':', $cluster);
-            $cassandra = new CassandraService($this->container, array(
-                'host' => $host,
-                'port' => $port
-            ));
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
 
             $query = $cassandra->removeKeyspaceQuery($keyspace);
             $cassandra->execute($query);

@@ -58,7 +58,7 @@ $(function(){
             if (response.status)
             {
                 var queryModal = $('#executeQueryModal');
-                queryModal.find('.modal-body pre.query').html(response.query);
+                queryModal.find('.modal-body pre.query').text(response.query);
                 queryModal.find('.modal-body div.alert').remove();
                 queryModal.modal('show');
             }

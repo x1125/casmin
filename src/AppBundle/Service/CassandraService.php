@@ -145,7 +145,7 @@ class CassandraService {
             if (in_array($fieldName, $fields))
                 throw new \Exception('Duplicate field name ("' . $fieldName . '")');
 
-            $fields[$fieldName] = $familyColumnConfig['type'][$index];
+            $fields[$fieldName] = $this->parseFieldType($familyColumnConfig['type'][$index]);
 
             if ($familyColumnConfig['prefix'][$index] == 'primary')
                 $pkeys[] = $fieldName;
@@ -275,6 +275,30 @@ class CassandraService {
         );
 
         return $query;
+    }
+
+    private function parseFieldType($type)
+    {
+        if (gettype($type) === 'string')
+            return $type;
+
+        if (gettype($type) === 'array')
+        {
+            reset($type);
+            if (gettype(key($type)) === 'integer')
+                return implode(',', $type);
+
+            $inherits = '';
+            $i = 1;
+            foreach ($type as $typ)
+            {
+                $inherits .= $this->parseFieldType($typ);
+                if ($i++ < count($type))
+                    $inherits .= ',';
+            }
+            reset($type);
+            return sprintf('%s<%s>', key($type), $inherits);
+        }
     }
 
     private function formattedFieldValue($field, $value)

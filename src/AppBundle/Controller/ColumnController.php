@@ -5,6 +5,8 @@ namespace AppBundle\Controller;
 use AppBundle\Service\CassandraService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class ColumnController extends Controller
 {
@@ -34,8 +36,38 @@ class ColumnController extends Controller
         }
 
         return $this->render('AppBundle:columns:index.html.twig', array(
-            'response' => $response
+            'response' => $response,
+            'ColumnFamily' => $this->get('config_service')->getConfiguration('ColumnFamily')
         ));
+    }
+
+    /**
+     * @Route("/api/column/add", name="column_add")
+     */
+    public function addColumnAction(Request $request)
+    {
+        $response = array(
+            'status' => false,
+            'message' => null
+        );
+
+        try
+        {
+            $params = $request->request->all();
+
+            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($params['cluster']));
+
+            $query = $cassandra->addColumnQuery($params);
+
+            $response['status'] = true;
+            $response['query'] = $query;
+        }
+        catch(\Exception $e)
+        {
+            $response['message'] = $e->getMessage();
+        }
+
+        return new JsonResponse($response);
     }
 
     /**

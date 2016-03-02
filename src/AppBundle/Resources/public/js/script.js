@@ -180,6 +180,15 @@ $(function(){
             $(this).attr('name', $(this).attr('name') + '[' + columnFamilyFieldId + ']');
         });
 
+        // check if only using alter (disable pkey and skey)
+        if ($(this).hasClass('alterOnly'))
+        {
+            dummy.find('input[type="radio"]').each(function(){
+                if ($(this).val() == 'primary' || $(this).val() == 'secondary')
+                    $(this).attr('disabled', 'disabled');
+            });
+        }
+
         // append dummy to table
         $('#columnFamilyFieldTable tbody').append(dummy);
 

@@ -156,48 +156,6 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
-    <table class="hide">
-        <tr id="columnFamilyFieldDummyRow" data-id="">
-            <td>
-                <a href="#" class="moveFieldRow" data-direction="up"><span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span></a>
-                <br />
-                <a href="#" class="moveFieldRow" data-direction="down"><span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></a>
-            </td>
-            <td>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="prefix" value="primary" />
-                    </label>
-                </div>
-            </td>
-            <td>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="prefix" value="secondary" />
-                    </label>
-                </div>
-            </td>
-            <td>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="prefix" value="" checked />
-                    </label>
-                </div>
-            </td>
-            <td>
-                <select class="form-control fieldTypeSelector" name="type">
-                    {% for columnFamilyDataType in ColumnFamily.ColumnFamilyDataTypes %}
-                        <option value="{{ columnFamilyDataType }}">{{ columnFamilyDataType }}</option>
-                    {% endfor %}
-                </select>
-            </td>
-            <td>
-                <input type="text" name="field" class="form-control fieldName" />
-            </td>
-            <td>
-                <a href="#" class="btn btn-sm btn-danger removeColumnFamilyField"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
-            </td>
-        </tr>
-    </table>
+    {% include 'AppBundle:columnFamilies:_dummyFieldRow.html.twig' with { 'ColumnFamilyDataTypes': ColumnFamily.ColumnFamilyDataTypes } %}
 
 {% endblock %}

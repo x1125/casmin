@@ -54,13 +54,12 @@
                                         <i class="fa fa-circle-o"></i>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <a href="#" class="btn btn-sm btn-danger pull-right">
-                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                    </a>
-                                    &nbsp;
-                                    <a href="#" class="btn btn-sm btn-warning pull-right">
+                                <td style="text-align: right;">
+                                    <a href="#" class="btn btn-sm btn-warning">
                                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                    </a>
+                                    <a href="{{ path('column_remove', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': app.request.get('columnFamily'), 'column': column.column_name }) }}" class="btn btn-sm btn-danger removeModalProcess">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                                     </a>
                                 </td>
                             </tr>
@@ -68,9 +67,52 @@
                         </tbody>
                     </table>
 
-                    <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addKeyspaceModal">Add</a>
+                    <a class="btn btn-success" href="#" role="button" data-toggle="modal" data-target="#addColumnModal">Add</a>
                 </div>
             </div>
+
+            <div class="modal fade" id="addColumnModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Add Column</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="status"></div>
+                            <form>
+                                <table class="table" id="columnFamilyFieldTable">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th><i class="fa fa-key"></i></th>
+                                        <th><i class="fa fa-hand-o-down"></i></th>
+                                        <th><i class="fa fa-circle-o"></i></th>
+                                        <th>Type</th>
+                                        <th>Name</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+
+                                <a class="btn btn-success addColumnFamilyField alterOnly" href="#" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+
+                                <input type="hidden" name="cluster" value="{{ app.request.get('cluster') }}">
+                                <input type="hidden" name="keyspace" value="{{ app.request.get('keyspace') }}">
+                                <input type="hidden" name="columnFamily" value="{{ app.request.get('columnFamily') }}">
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-success processQueryModalButton" data-target="{{ path('column_add') }}">Add Column</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+
+            {% include 'AppBundle:columnFamilies:_dummyFieldRow.html.twig' with { 'ColumnFamilyDataTypes': ColumnFamily.ColumnFamilyDataTypes } %}
 
         {% else %}
             <div class="alert alert-danger" role="alert">Error: {{ response.message }}</div>

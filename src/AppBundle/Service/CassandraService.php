@@ -114,7 +114,29 @@ class CassandraService {
 
     public function removeColumnQuery($keyspace, $columnFamily, $column)
     {
+        return sprintf('ALTER TABLE %s.%s DROP %s', $keyspace, $columnFamily, $column);
+    }
 
+    private function parseFieldsFromRequestConfig($config = array(), &$fields, &$pkeys, &$skeys)
+    {
+        $fields = array();
+        $pkeys = array();
+        $skeys = array();
+        foreach ($config['field'] as $index => $fieldName)
+        {
+            if (strlen($fieldName) < 1)
+                throw new \Exception('Empty field name given (Row #' . (count($fields) + 1) . ')');
+
+            if (in_array($fieldName, $fields))
+                throw new \Exception('Duplicate field name ("' . $fieldName . '")');
+
+            $fields[$fieldName] = $this->parseFieldType($config['type'][$index]);
+
+            if ($config['prefix'][$index] == 'primary')
+                $pkeys[] = $fieldName;
+            elseif ($config['prefix'][$index] == 'secondary')
+                $skeys[] = $fieldName;
+        }
     }
 
     public function addColumnFamilyQuery($familyColumnConfig = array())
@@ -137,28 +159,15 @@ class CassandraService {
         $fields = array();
         $pkeys = array();
         $skeys = array();
-        foreach ($familyColumnConfig['field'] as $index => $fieldName)
-        {
-            if (strlen($fieldName) < 1)
-                throw new \Exception('Empty field name given (Row #' . (count($fields) + 1) . ')');
 
-            if (in_array($fieldName, $fields))
-                throw new \Exception('Duplicate field name ("' . $fieldName . '")');
-
-            $fields[$fieldName] = $this->parseFieldType($familyColumnConfig['type'][$index]);
-
-            if ($familyColumnConfig['prefix'][$index] == 'primary')
-                $pkeys[] = $fieldName;
-            elseif ($familyColumnConfig['prefix'][$index] == 'secondary')
-                $skeys[] = $fieldName;
-        }
+        // parse fields
+        $this->parseFieldsFromRequestConfig($familyColumnConfig, $fields, $pkeys, $skeys);
 
         // check for primary key
         if (count($pkeys) < 1)
             throw new \Exception('You need at least one primary key');
 
         $columnDefinitions = array();
-        $properties = array();
 
         // build column definitions
         foreach ($fields as $fieldName => $fieldType)
@@ -169,7 +178,9 @@ class CassandraService {
         $skeyInfo = count($skeys) > 0 ? ($pkeyInfo . ', ' . implode(',', $skeys)) : $pkeyInfo;
         $columnDefinitions[] = sprintf('PRIMARY KEY (%s)', $skeyInfo);
 
+
         // parse generic properties
+        $properties = array();
         $skipProperties = array('name', 'caching_keys', 'caching_rows_per_partition', 'compaction', 'compression', 'compact_storage');
         foreach ($this->config['ColumnFamily']['ColumnFamily'] as $fieldName => $field)
         {
@@ -275,6 +286,29 @@ class CassandraService {
         );
 
         return $query;
+    }
+
+    public function addColumnQuery($columnConfig = array())
+    {
+        // check for empty or duplicate field names
+        $fields = array();
+        $pkeys = array();
+        $skeys = array();
+
+        // parse fields
+        $this->parseFieldsFromRequestConfig($columnConfig, $fields, $pkeys, $skeys);
+
+        $query = array();
+        foreach ($fields as $fieldName => $fieldType)
+            $query[] = sprintf(
+                'ALTER TABLE %s.%s ADD %s %s;',
+                $columnConfig['keyspace'],
+                $columnConfig['columnFamily'],
+                $fieldName,
+                $fieldType
+            );
+
+        return implode("\n", $query);
     }
 
     private function parseFieldType($type)

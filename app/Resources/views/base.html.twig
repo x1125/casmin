@@ -2,7 +2,15 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>{% block title %}CasMin{% endblock %}</title>
+    {% set cluster = app.request.get('cluster') %}
+    {% set keyspace = app.request.get('keyspace') %}
+    {% set columnFamily = app.request.get('columnFamily') %}
+    <title>
+        {% block title %}CasMin{% endblock %}
+        {{ cluster ? ' - ' ~ cluster }}
+        {{ keyspace ? ' - ' ~ keyspace }}
+        {{ columnFamily ? ' - ' ~ columnFamily }}
+    </title>
     {% block stylesheets %}
         <link rel="stylesheet" href="{{ asset('assets/vendor/bootstrap/dist/css/bootstrap.min.css') }}" />
         <link rel="stylesheet" href="{{ asset('assets/vendor/font-awesome/css/font-awesome.min.css') }}" />
@@ -41,13 +49,13 @@
     <ol class="breadcrumb">
         <li><a href="{{ path('clusters') }}">Clusters</a></li>
         {% if app.request.get('cluster') %}
-            <li><a href="{{ path('keyspaces', { 'cluster': app.request.get('cluster') }) }}">{{ app.request.get('cluster') }}</a></li>
+            <li><a href="{{ path('keyspaces', { 'cluster': cluster }) }}">{{ cluster }}</a></li>
         {% endif %}
         {% if app.request.get('keyspace') %}
-            <li><a href="{{ path('columnFamilies', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace') }) }}">{{ app.request.get('keyspace') }}</a></li>
+            <li><a href="{{ path('columnFamilies', { 'cluster': cluster, 'keyspace': keyspace }) }}">{{ keyspace }}</a></li>
         {% endif %}
         {% if app.request.get('columnFamily') %}
-            <li><a href="{{ path('columnFamilies', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnFamily': app.request.get('columnFamily') }) }}">{{ app.request.get('columnFamily') }}</a></li>
+            <li><a href="{{ path('columns', { 'cluster': cluster, 'keyspace': keyspace, 'columnFamily': columnFamily }) }}">{{ columnFamily }}</a></li>
         {% endif %}
     </ol>
 </div>
@@ -96,8 +104,8 @@
     <script src="{{ asset('assets/vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 
     <script type="text/javascript">
-        var cluster = '{{ app.request.get('cluster') ?: '' }}';
-        var keyspace = '{{ app.request.get('keyspace') ?: '' }}';
+        var cluster = '{{ cluster }}';
+        var keyspace = '{{ keyspace }}';
     </script>
 
     {% javascripts '@AppBundle/Resources/public/js/*' %}

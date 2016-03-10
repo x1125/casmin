@@ -130,7 +130,7 @@ class CassandraService {
             if (in_array($fieldName, $fields))
                 throw new \Exception('Duplicate field name ("' . $fieldName . '")');
 
-            $fields[$fieldName] = $this->parseFieldType($config['type'][$index]);
+            $fields[$fieldName] = $this->parseFieldTypeFromArray($config['type'][$index]);
 
             if ($config['prefix'][$index] == 'primary')
                 $pkeys[] = $fieldName;
@@ -311,27 +311,28 @@ class CassandraService {
         return implode("\n", $query);
     }
 
-    private function parseFieldType($type)
+    public static function parseFieldTypeFromArray($type)
     {
+        // return value directly, if type is string
         if (gettype($type) === 'string')
             return $type;
 
+        // if type is array, check the kind
         if (gettype($type) === 'array')
         {
-            reset($type);
-            if (gettype(key($type)) === 'integer')
-                return implode(',', $type);
-
             $inherits = '';
             $i = 1;
-            foreach ($type as $typ)
+            foreach ($type as $subType)
             {
-                $inherits .= $this->parseFieldType($typ);
+                $inherits .= self::parseFieldTypeFromArray($subType);
                 if ($i++ < count($type))
                     $inherits .= ',';
             }
             reset($type);
-            return sprintf('%s<%s>', key($type), $inherits);
+            if (gettype(key($type)) === 'integer')
+                return $inherits;
+            else
+                return sprintf('%s<%s>', key($type), $inherits);
         }
     }
 

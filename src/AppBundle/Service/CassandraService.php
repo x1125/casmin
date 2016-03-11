@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class CassandraService {
 
-    private $container, $cluster, $session, $config;
+    private $container, $cluster, $clusterConfig, $session, $config;
 
     const keyspaceClasses = array('SimpleStrategy', 'NetworkTopologyStrategy');
 
@@ -33,6 +33,7 @@ class CassandraService {
     public function __construct(ContainerInterface $container, $clusterConfig = array())
     {
         $this->container = $container;
+        $this->clusterConfig = $clusterConfig;
 
         $this->cluster = Cassandra::cluster()
             ->withContactPoints($clusterConfig['host'])
@@ -50,6 +51,16 @@ class CassandraService {
             'ColumnFamilyCompactionSubOptions' => $container->get('config_service')->getConfiguration('ColumnFamilyCompactionSubOptions'),
             'ColumnFamilyCompressionSubOptions' => $container->get('config_service')->getConfiguration('ColumnFamilyCompressionSubOptions'),
         );
+    }
+
+    public static function getCqlshBinary()
+    {
+        $buf = shell_exec('whereis cqlsh');
+        $parts = explode(' ', $buf);
+        if (count($parts) < 2)
+            return false;
+
+        return $parts[1];
     }
 
     public function getKeyspaces($name = null)
@@ -382,6 +393,8 @@ class CassandraService {
         if ($columnFamily)
             $query .= ($keyspace ? ' AND ' : ' WHERE ') . "columnfamily_name = '$columnFamily'";
 
+        $columnTypeMapping = $this->getColumnTypeMapping($keyspace . '.' . $columnFamily);
+
         $arr = array();
         $res = $this->session->execute(new Cassandra\SimpleStatement($query));
         foreach ($res as $row)
@@ -394,9 +407,47 @@ class CassandraService {
 
         if (!$name)
         {
+            // sort by component_index
             usort($arr, function ($a, $b) {
                 return strcmp($a['component_index'], $b['component_index']);
             });
+
+            // add type
+            foreach ($arr as $index => $column)
+                $arr[$index]['data_type'] = @$columnTypeMapping[$column['column_name']];
+        }
+
+        return $arr;
+    }
+
+    public function cqlshDescribe($name)
+    {
+        $cqlshBinary = self::getCqlshBinary();
+        if (!$cqlshBinary)
+            return false;
+
+        $host = $this->clusterConfig['host'];
+        $port = $this->clusterConfig['port'];
+
+        return trim(shell_exec("$cqlshBinary $host $port -e 'DESCRIBE $name;'"));
+    }
+
+    public function getColumnTypeMapping($name)
+    {
+        $arr = array();
+
+        $buf = $this->cqlshDescribe($name);
+        $start = strpos($buf, '(');
+        $end = strpos($buf, ')') - $start;
+        $buf = substr($buf, $start + 1, $end);
+
+        foreach (explode(',', $buf) as $row)
+        {
+            $parts = explode(' ', trim($row));
+            if (count($parts) !== 2)
+                continue;
+
+            $arr[$parts[0]] = $parts[1];
         }
 
         return $arr;

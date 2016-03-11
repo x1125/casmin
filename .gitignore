@@ -16,4 +16,6 @@
 /web/bundles/
 /web/css/*
 /web/js/*
+/web/cassandra.log
 /.idea/
+/composer.lock

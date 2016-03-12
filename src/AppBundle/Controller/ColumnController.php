@@ -11,9 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 class ColumnController extends Controller
 {
     /**
-     * @Route("/columns/{cluster}/{keyspace}/{columnFamily}", name="columns")
+     * @Route("/columns/{cluster}/{keyspace}/{columnfamily}", name="columns")
      */
-    public function defaultAction($cluster, $keyspace, $columnFamily)
+    public function defaultAction($cluster, $keyspace, $columnfamily)
     {
         $response = array(
             'status' => false,
@@ -27,7 +27,7 @@ class ColumnController extends Controller
             $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
 
             $response['columnFamilies'] = $cassandra->getColumnFamilies($keyspace);
-            $response['columns'] = $cassandra->getColumns($keyspace, $columnFamily);
+            $response['columns'] = $cassandra->getColumns($keyspace, $columnfamily);
             $response['status'] = true;
         }
         catch (\Exception $e)
@@ -90,7 +90,7 @@ class ColumnController extends Controller
         return $this->redirectToRoute('columns', array(
             'cluster' => $cluster,
             'keyspace' => $keyspace,
-            'columnFamily' => $columnfamily
+            'columnfamily' => $columnfamily
         ));
     }
 }

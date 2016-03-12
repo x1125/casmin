@@ -11,8 +11,11 @@
                         {% for columnFamily in response.columnFamilies %}
                             <tr>
                                 <td>
-                                    <a href="{{ path('columns', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnFamily': columnFamily.columnfamily_name }) }}">
+                                    <a href="{{ path('columns', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}">
                                         {{ columnFamily.columnfamily_name }}
+                                    </a>
+                                    <a href="{{ path('list', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}" class="btn btn-xs btn-default pull-right">
+                                        <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
                                     </a>
                                 </td>
                             </tr>
@@ -56,13 +59,15 @@
                                         <i class="fa fa-circle-o"></i>
                                     {% endif %}
                                 </td>
-                                <td style="text-align: right;">
-                                    <a href="#" class="btn btn-sm btn-warning">
-                                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-                                    </a>
-                                    <a href="{{ path('column_remove', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': app.request.get('columnFamily'), 'column': column.column_name }) }}" class="btn btn-sm btn-danger removeModalProcess">
-                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                    </a>
+                                <td align="right">
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-warning">
+                                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                        </a>
+                                        <a href="{{ path('column_remove', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': app.request.get('columnfamily'), 'column': column.column_name }) }}" class="btn btn-sm btn-danger removeModalProcess">
+                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                        </a>
+                                        </div>
                                 </td>
                             </tr>
                         {% endfor %}

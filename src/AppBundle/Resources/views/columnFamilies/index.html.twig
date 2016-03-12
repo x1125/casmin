@@ -19,16 +19,21 @@
                 {% for columnFamily in response.columnFamilies %}
                     <tr>
                         <td>
-                            <a href="{{ path('columns', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnFamily': columnFamily.columnfamily_name }) }}">
+                            <a href="{{ path('columns', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}">
                                 {{ columnFamily.columnfamily_name }}
                             </a>
                         </td>
                         <td>{{ columnFamily.type }}</td>
                         <td>{{ columnFamily.comment }}</td>
-                        <td>
-                            <a href="{{ path('columnfamily_remove', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}" class="btn btn-sm btn-danger pull-right removeModalProcess">
-                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                            </a>
+                        <td align="right">
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('list', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}" class="btn btn-sm btn-default">
+                                    <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+                                </a>
+                                <a href="{{ path('columnfamily_remove', { 'cluster': app.request.get('cluster'), 'keyspace': app.request.get('keyspace'), 'columnfamily': columnFamily.columnfamily_name }) }}" class="btn btn-sm btn-danger removeModalProcess">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}

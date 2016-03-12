@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<div class="container">
+    <h3>List</h3>
+
+    {% for row in data %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Column</th>
+            <th>Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for column in columns %}
+            <tr>
+                <td>{{ column.column_name }}</td>
+                <td>{{ row[column.column_name] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+    {% endfor %}
+
+</div>
+{% endblock %}

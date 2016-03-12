@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     {% set cluster = app.request.get('cluster') %}
     {% set keyspace = app.request.get('keyspace') %}
-    {% set columnFamily = app.request.get('columnFamily') %}
+    {% set columnFamily = app.request.get('columnfamily') %}
     <title>
         {% block title %}
         CasMin{{ cluster ? ' - ' ~ cluster }}{{ keyspace ? ' - ' ~ keyspace }}{{ columnFamily ? ' - ' ~ columnFamily }}
@@ -45,18 +45,21 @@
     </div><!-- /.container-fluid -->
 </nav>
 
-{% if route == 'clusters' %}
+{% if route != 'execute' %}
 <div class="container">
     <ol class="breadcrumb">
         <li><a href="{{ path('clusters') }}">Clusters</a></li>
-        {% if app.request.get('cluster') %}
+        {% if cluster %}
             <li><a href="{{ path('keyspaces', { 'cluster': cluster }) }}">{{ cluster }}</a></li>
         {% endif %}
-        {% if app.request.get('keyspace') %}
+        {% if keyspace %}
             <li><a href="{{ path('columnFamilies', { 'cluster': cluster, 'keyspace': keyspace }) }}">{{ keyspace }}</a></li>
         {% endif %}
-        {% if app.request.get('columnFamily') %}
-            <li><a href="{{ path('columns', { 'cluster': cluster, 'keyspace': keyspace, 'columnFamily': columnFamily }) }}">{{ columnFamily }}</a></li>
+        {% if columnFamily %}
+            <li><a href="{{ path('columns', { 'cluster': cluster, 'keyspace': keyspace, 'columnfamily': columnFamily }) }}">{{ columnFamily }}</a></li>
+        {% endif %}
+        {% if route == 'list' %}
+            <li><a href="{{ path('list', { 'cluster': cluster, 'keyspace': keyspace, 'columnfamily': columnFamily }) }}">List</a></li>
         {% endif %}
     </ol>
 </div>

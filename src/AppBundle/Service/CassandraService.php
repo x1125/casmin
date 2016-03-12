@@ -420,6 +420,18 @@ class CassandraService {
         return $arr;
     }
 
+    public function getData($keyspace = null, $columnFamily = null)
+    {
+        $query = "SELECT * FROM $keyspace.$columnFamily";
+
+        $arr = array();
+        $res = $this->session->execute(new Cassandra\SimpleStatement($query));
+        foreach ($res as $row)
+            $arr[] = $row;
+
+        return $arr;
+    }
+
     public function cqlExecuteFile($file)
     {
         $cqlshBinary = self::getCqlshBinary();

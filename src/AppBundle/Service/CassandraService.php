@@ -420,6 +420,18 @@ class CassandraService {
         return $arr;
     }
 
+    public function cqlExecuteFile($file)
+    {
+        $cqlshBinary = self::getCqlshBinary();
+        if (!$cqlshBinary)
+            return false;
+
+        $host = $this->clusterConfig['host'];
+        $port = $this->clusterConfig['port'];
+
+        return trim(shell_exec("$cqlshBinary $host $port -f $file 2>&1"));
+    }
+
     public function cqlshDescribe($name)
     {
         $cqlshBinary = self::getCqlshBinary();
@@ -451,6 +463,36 @@ class CassandraService {
         }
 
         return $arr;
+    }
+
+    public static function getClusterConfigurationFile(ContainerInterface $container)
+    {
+        $vendorPath = realpath($container->get('kernel')->getRootDir() . '/../var');
+        if (!$vendorPath)
+            throw new \Exception('Vendor path not found');
+
+        $clusterConfigurationPath = $vendorPath . '/clusters';
+        if (is_file($clusterConfigurationPath))
+            return $clusterConfigurationPath;
+
+        touch($clusterConfigurationPath);
+        if (is_file($clusterConfigurationPath))
+            return $clusterConfigurationPath;
+
+        throw new \Exception('Unable to create cluster configuration dir ("' . $clusterConfigurationPath . '")');
+    }
+
+    public static function getClusters(ContainerInterface $container)
+    {
+        return file(self::getClusterConfigurationFile($container), FILE_IGNORE_NEW_LINES);
+    }
+
+    public function command($command)
+    {
+        $tmpFile = tempnam('/tmp', 'casmin');
+        file_put_contents($tmpFile, $command);
+
+        return $this->cqlExecuteFile($tmpFile);
     }
 
 }

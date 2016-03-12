@@ -39,11 +39,13 @@
             <ul class="nav navbar-nav">
                 {% set route = app.request.get('_route') %}
                 <li class="{{ route == 'clusters' ? 'active' }}"><a href="{{ path('clusters') }}">Clusters</a></li>
+                <li class="{{ route == 'execute' ? 'active' }}"><a href="{{ path('execute') }}">Execute</a></li>
             </ul>
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
 
+{% if route == 'clusters' %}
 <div class="container">
     <ol class="breadcrumb">
         <li><a href="{{ path('clusters') }}">Clusters</a></li>
@@ -58,6 +60,7 @@
         {% endif %}
     </ol>
 </div>
+{% endif %}
 
 {% block body %}{% endblock %}
 

@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="container">
+        <div class="row row-eq-height">
+            <div class="col-md-7">
+                <label>Output</label>
+                <pre id="executeOutput"></pre>
+            </div>
+            <div class="col-md-5">
+                <fieldset>
+                    <label for="code">Input</label>
+                    <div class="form-group">
+                        <textarea id="command" class="form-control executeCommand"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <select id="cluster" class="form-control">
+                                    {% for cluster in clusters %}
+                                        <option value="{{ cluster }}">{{ cluster }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ path('execute_command') }}" class="btn btn-default btn-block" id="executeCommand">Run</a>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

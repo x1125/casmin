@@ -25,7 +25,7 @@ class ClusterController extends Controller
     {
         // replace this example code with whatever you need
         return $this->render('AppBundle:clusters:index.html.twig', array(
-            'clusters' => $this->getClusters(),
+            'clusters' => CassandraService::getClusters($this->container),
             'cassandraVersions' => CassandraService::cassandraVersions
         ));
     }
@@ -35,9 +35,9 @@ class ClusterController extends Controller
      */
     public function removeClusterAction($cluster)
     {
-        $buf = file_get_contents($this->getClusterConfigurationFile());
+        $buf = file_get_contents(CassandraService::getClusterConfigurationFile($this->container));
         $buf = str_replace($cluster . "\n", '', $buf);
-        file_put_contents($this->getClusterConfigurationFile(), $buf);
+        file_put_contents(CassandraService::getClusterConfigurationFile($this->container), $buf);
 
         return $this->redirectToRoute('clusters');
     }
@@ -57,10 +57,10 @@ class ClusterController extends Controller
             $params = $request->request->all();
             $config = sprintf('%s:%s:%s', $params['host'], $params['port'], $params['version']);
 
-            if (in_array($config, $this->getClusters()))
+            if (in_array($config, CassandraService::getClusters($this->container)))
                 throw new \Exception('Entry already exists');
 
-            file_put_contents($this->getClusterConfigurationFile(), $config . "\n", FILE_APPEND);
+            file_put_contents(CassandraService::getClusterConfigurationFile($this->container), $config . "\n", FILE_APPEND);
 
             $response['status'] = true;
         }
@@ -70,27 +70,5 @@ class ClusterController extends Controller
         }
 
         return new JsonResponse($response);
-    }
-
-    private function getClusterConfigurationFile()
-    {
-        $vendorPath = realpath($this->get('kernel')->getRootDir() . '/../var');
-        if (!$vendorPath)
-            throw new \Exception('Vendor path not found');
-
-        $clusterConfigurationPath = $vendorPath . '/clusters';
-        if (is_file($clusterConfigurationPath))
-            return $clusterConfigurationPath;
-
-        touch($clusterConfigurationPath);
-        if (is_file($clusterConfigurationPath))
-            return $clusterConfigurationPath;
-
-        throw new \Exception('Unable to create cluster configuration dir ("' . $clusterConfigurationPath . '")');
-    }
-
-    private function getClusters()
-    {
-        return file($this->getClusterConfigurationFile(), FILE_IGNORE_NEW_LINES);
     }
 }

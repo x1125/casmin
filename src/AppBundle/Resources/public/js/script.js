@@ -370,6 +370,45 @@ $(function(){
             input.wrap($('<div class="input-group" />'));
             input.after('<div class="input-group-addon">%</div>');
         }
-    })
+    });
+
+    $('#executeCommand').on('click', function(e){
+        e.preventDefault();
+
+        var fieldset = $(this).parents('fieldset');
+        var postData = {
+            'command': $('#command').val(),
+            'cluster': $('#cluster').val()
+        };
+
+        fieldset.attr('disabled', 'disabled');
+        $.post($(this).attr('href'), postData, function(response){
+            fieldset.removeAttr('disabled');
+
+            // no status given? something really went wrong
+            if (!('status' in response))
+            {
+                alert('Invalid response');
+                console.log(response);
+                return;
+            }
+
+            // remove previous alerts
+            $('#executeOutput').parent().find('div.alert').remove();
+
+            // some error occurred
+            if (!response.status || !response.output)
+            {
+                $('#executeOutput').after('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
+                return;
+            }
+
+            // preview query
+            if (response.status)
+            {
+                $('#executeOutput').html(response.output);
+            }
+        });
+    });
 
 });

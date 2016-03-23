@@ -17,7 +17,15 @@
         {% for column in columns %}
             <tr>
                 <td>{{ column.column_name }}</td>
-                <td>{{ row[column.column_name] }}</td>
+                <td>
+                    {% if row[column.column_name] is iterable %}
+                        {% for index, value in row[column.column_name] %}
+                            {{ index }}: {{ value }} <br />
+                        {% endfor %}
+                    {% else %}
+                        {{ row[column.column_name] }}
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
         </tbody>

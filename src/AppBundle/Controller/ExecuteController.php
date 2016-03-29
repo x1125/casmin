@@ -39,7 +39,7 @@ class ExecuteController extends Controller
             $output = $cassandra->command($params['command']);
 
             $response['status'] = true;
-            $response['output'] = $output;
+            $response['output'] = htmlspecialchars($output);
         }
         catch(\Exception $e)
         {

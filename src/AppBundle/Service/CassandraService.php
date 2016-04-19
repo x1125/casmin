@@ -464,14 +464,15 @@ class CassandraService {
         $start = strpos($buf, '(');
         $end = strpos($buf, ')') - $start;
         $buf = substr($buf, $start + 1, $end);
+        $buf = trim($buf);
 
-        foreach (explode(',', $buf) as $row)
+        foreach (explode("\n", $buf) as $row)
         {
-            $parts = explode(' ', trim($row));
+            $parts = explode(' ', trim($row), 2);
             if (count($parts) !== 2)
                 continue;
 
-            $arr[$parts[0]] = $parts[1];
+            $arr[$parts[0]] = substr(trim($parts[1]), 0, -1);
         }
 
         return $arr;

@@ -411,4 +411,16 @@ $(function(){
         });
     });
 
+    $('#showIndexOptionsModal').on('show.bs.modal', function(e){
+        var button = $(e.relatedTarget);
+        var json = button.attr('data-json');
+
+        json = json
+            .replace(/\\n/g,"<br>")
+            .replace(/\\"/g,"\"");
+
+        var modal = $(this);
+        modal.find('.modal-body').html(json);
+    });
+
 });

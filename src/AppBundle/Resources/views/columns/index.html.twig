@@ -46,7 +46,13 @@
                                 <td>{{ column.data_type }}</td>
                                 <td>{{ column.component_index }}</td>
                                 <td>{{ column.index_name }}</td>
-                                <td>{{ column.index_options }}</td>
+                                <td>
+                                    {% if column.index_options == 'null' %}
+                                        -
+                                    {% else %}
+                                        <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#showIndexOptionsModal" data-json="{{ column.index_options }}">Show</a>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {{ column.index_type }}
                                 </td>
@@ -114,6 +120,21 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             <button type="button" class="btn btn-success processQueryModalButton" data-target="{{ path('column_add') }}">Add Column</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+
+            <div class="modal fade" id="showIndexOptionsModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Index options</h4>
+                        </div>
+                        <div class="modal-body"></div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                         </div>
                     </div><!-- /.modal-content -->
                 </div><!-- /.modal-dialog -->

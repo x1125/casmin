@@ -2,18 +2,17 @@
 
 namespace AppBundle\Service;
 
-use Cassandra;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class CassandraService {
+class CqlshService {
 
-    private $container, $cluster, $clusterConfig, $session, $config;
+    private $container, $clusterConfig, $config, $cqlshBinaries;
 
     const keyspaceClasses = array('SimpleStrategy', 'NetworkTopologyStrategy');
 
-    const cassandraVersions = array(
-        '2.2',
-        '3.3'
+    const cqlVersions = array(
+        '3.1', // cassandra ~2.1
+        '3.3'  // cassandra ~3.x
     );
 
     public static function clusterConfig($cluster)
@@ -35,16 +34,14 @@ class CassandraService {
         $this->container = $container;
         $this->clusterConfig = $clusterConfig;
 
-        $this->cluster = Cassandra::cluster()
-            ->withContactPoints($clusterConfig['host'])
-            ->withPort(intval($clusterConfig['port']))
-            ->build();
+        $this->cqlshBinaries = $container->getParameter('cqlsh');
+        if (!$this->cqlshBinaries)
+            throw new \Exception('cqlsh binaries are not configured in parameters.yml');
 
-        $this->session = $this->cluster->connect();
-        $this->version = $clusterConfig['version'];
+        $this->cqlVersion = $clusterConfig['version'];
 
-        if (!in_array($this->version, self::cassandraVersions))
-            throw new \Exception('Unknown cassandra version (' . $this->version . ')');
+        if (!in_array($this->cqlVersion, self::cqlVersions))
+            throw new \Exception('Unknown cql version (' . $this->cqlVersion . ')');
 
         $this->config = array(
             'ColumnFamily' => $container->get('config_service')->getConfiguration('ColumnFamily'),
@@ -53,26 +50,84 @@ class CassandraService {
         );
     }
 
-    public static function getCqlshBinary()
+    private function parseCqlTable($buf)
     {
-        $buf = shell_exec('whereis cqlsh');
-        $parts = explode(' ', $buf);
-        if (count($parts) < 2)
+        $arr = array();
+        $cellHeaders = array();
+        $cqlTableRows = explode("\n", $buf);
+
+        // get cell headers
+        $cells = explode('|', array_shift($cqlTableRows)); // remove index 0
+        foreach ($cells as $cell)
+            $cellHeaders[] = trim($cell);
+
+        // remove spacing line
+        array_shift($cqlTableRows); // remove index 1
+
+        // get cell data
+        $i = 0;
+        foreach ($cqlTableRows as $row)
+        {
+            $cells = explode('|', $row);
+
+            // amount of cells does not match - skip
+            if (count($cells) !== count($cellHeaders))
+                continue;
+
+            foreach ($cells as $index => $cell)
+                $arr[$i][$cellHeaders[$index]] = $this->parseCqlTableValue(trim($cell));
+
+            $i++;
+        }
+
+        return $arr;
+    }
+
+    private function parseCqlTableValue($buf)
+    {
+        // replace booleans
+        if ($buf === 'True')
+            return true;
+        elseif ($buf === 'False')
             return false;
 
-        return $parts[1];
+        if (substr($buf, 0, 1) === '{' && substr($buf, -1) === '}')
+            return json_decode(str_replace('\'', '"', $buf), true);
+
+        return $buf;
     }
 
     public function getKeyspaces($name = null)
     {
         $arr = array();
-        $res = $this->session->execute(new Cassandra\SimpleStatement('SELECT * FROM system.schema_keyspaces'));
-        foreach ($res as $row)
+        $buf = $this->execute(
+            'SELECT * FROM ' . ($this->cqlVersion === '3.1' ? 'system.schema_keyspaces' : 'system_schema.keyspaces')
+        );
+
+        $res = $this->parseCqlTable($buf);
+
+        // add some backwards compatibility
+        if ($this->cqlVersion === '3.3')
+        {
+            foreach ($res as &$row)
+            {
+                if (array_key_exists('replication', $row))
+                {
+                    $row['strategy_class'] = $row['replication']['class'];
+                    $row['strategy_options'] = array();
+
+                    if (array_key_exists('replication_factor', $row['replication']))
+                        $row['strategy_options']['replication_factor'] = $row['replication']['replication_factor'];
+                }
+            }
+        }
+
+        foreach ($res as $resRow)
         {
             if ($name)
-                $arr[] = $row[$name];
+                $arr[] = $resRow[$name];
             else
-                $arr[] = $row;
+                $arr[] = $resRow;
         }
 
         return $arr;
@@ -359,26 +414,36 @@ class CassandraService {
         return $fieldValue;
     }
 
-    public function execute($query)
-    {
-        $this->session->execute(new Cassandra\SimpleStatement($query));
-        return true;
-    }
-
     public function getColumnFamilies($keyspace = null, $name = null)
     {
-        $query = 'SELECT * FROM system.schema_columnfamilies';
+        //$query = 'SELECT * FROM system.schema_columnfamilies';
+        $query = 'SELECT * FROM ' . ($this->cqlVersion === '3.1' ? 'system.schema_columnfamilies' : 'system_schema.tables');
         if ($keyspace)
             $query .= " WHERE keyspace_name = '$keyspace'";
 
         $arr = array();
-        $res = $this->session->execute(new Cassandra\SimpleStatement($query));
-        foreach ($res as $row)
+        $buf = $this->execute($query);
+
+        $res = $this->parseCqlTable($buf);
+
+        // add some backwards compatibility
+        if ($this->cqlVersion === '3.3')
+        {
+            foreach ($res as &$row)
+            {
+                $row['columnfamily_name'] = $row['table_name'];
+                $row['column_name'] = $row['table_name'];
+                //$row['comment'] = '-';
+                $row['type'] = 'n/a';
+            }
+        }
+
+        foreach ($res as $resRow)
         {
             if ($name)
-                $arr[] = $row[$name];
+                $arr[] = $resRow[$name];
             else
-                $arr[] = $row;
+                $arr[] = $resRow;
         }
 
         return $arr;
@@ -386,23 +451,44 @@ class CassandraService {
 
     public function getColumns($keyspace = null, $columnFamily = null, $name = null)
     {
-        $query = 'SELECT * FROM system.schema_columns';
+        $query = 'SELECT * FROM ' . ($this->cqlVersion === '3.1' ? 'system.schema_columns' : 'system_schema.columns');
         if ($keyspace)
             $query .= " WHERE keyspace_name = '$keyspace'";
 
         if ($columnFamily)
-            $query .= ($keyspace ? ' AND ' : ' WHERE ') . "columnfamily_name = '$columnFamily'";
+        {
+            $query .= $keyspace ? ' AND ' : ' WHERE ';
+            $query .= sprintf(
+                "%s = '$columnFamily'",
+                ($this->cqlVersion === '3.1' ? 'columnfamily_name' : 'table_name')
+            );
+        }
 
         $columnTypeMapping = $this->getColumnTypeMapping($keyspace . '.' . $columnFamily);
 
         $arr = array();
-        $res = $this->session->execute(new Cassandra\SimpleStatement($query));
-        foreach ($res as $row)
+        $buf = $this->execute($query);
+
+        $res = $this->parseCqlTable($buf);
+
+        // add some backwards compatibility
+        if ($this->cqlVersion === '3.3')
+        {
+            foreach ($res as &$row)
+            {
+                $row['component_index'] = $row['position'];
+                $row['index_name'] = $row['kind'];
+                $row['index_type'] = 'null';
+                $row['index_options'] = $row['type'];
+            }
+        }
+
+        foreach ($res as $resRow)
         {
             if ($name)
-                $arr[] = $row[$name];
+                $arr[] = $resRow[$name];
             else
-                $arr[] = $row;
+                $arr[] = $resRow;
         }
 
         if (!$name)
@@ -425,7 +511,10 @@ class CassandraService {
         $query = "SELECT * FROM $keyspace.$columnFamily";
 
         $arr = array();
-        $res = $this->session->execute(new Cassandra\SimpleStatement($query));
+        $buf = $this->execute($query);
+
+        $res = $this->parseCqlTable($buf);
+
         foreach ($res as $row)
             $arr[] = $row;
 
@@ -446,14 +535,7 @@ class CassandraService {
 
     public function cqlshDescribe($name)
     {
-        $cqlshBinary = self::getCqlshBinary();
-        if (!$cqlshBinary)
-            return false;
-
-        $host = $this->clusterConfig['host'];
-        $port = $this->clusterConfig['port'];
-
-        return trim(shell_exec("$cqlshBinary $host $port -e 'DESCRIBE $name;'"));
+        return $this->execute("DESCRIBE $name");
     }
 
     public function getColumnTypeMapping($name)
@@ -500,12 +582,51 @@ class CassandraService {
         return file(self::getClusterConfigurationFile($container), FILE_IGNORE_NEW_LINES);
     }
 
-    public function command($command)
+    public function execute($query)
     {
-        $tmpFile = tempnam('/tmp', 'casmin');
-        file_put_contents($tmpFile, $command);
+        // append semicolon if not already set as last sign
+        if (substr($query, -1) !== ';')
+            $query .= ';';
 
-        return $this->cqlExecuteFile($tmpFile);
+        // create temporary file with query
+        $tmpFile = tempnam('/tmp', 'casmin');
+        file_put_contents($tmpFile, $query);
+
+        // select the cqlsh binary matching the cql version
+        $cqlshBinary = $this->cqlshBinaries[$this->cqlVersion];
+        if (!$cqlshBinary)
+            throw new \Exception('cqlsh binary was not found');
+
+        // execute process
+        $proc = proc_open(
+            sprintf(
+                "%s --no-color %s %s -f %s",
+                $cqlshBinary,
+                $this->clusterConfig['host'],
+                $this->clusterConfig['port'],
+                $tmpFile
+            ),
+            [
+                1 => ['pipe','w'],
+                2 => ['pipe','w'],
+            ],
+            $pipes
+        );
+
+        // read stdout and stderr
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        proc_close($proc);
+
+        // remove query file
+        unlink($tmpFile);
+
+        if ($stderr !== '')
+            throw new \Exception('error running query: ' . $stderr);
+
+        return trim($stdout);
     }
 
 }

@@ -2,19 +2,19 @@
 
 namespace Tests\AppBundle\Service;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-class CassandraServiceTest extends WebTestCase
+class CqlshServiceTest extends WebTestCase
 {
     public function testParseFieldTypeFromArray()
     {
         // simple varchar test
-        $type = CassandraService::parseFieldTypeFromArray(array('varchar'));
+        $type = CqlshService::parseFieldTypeFromArray(array('varchar'));
         $this->assertTrue($type === 'varchar');
 
         // simple list test
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'list' => array(
                 0 => 'int',
                 1 => 'varchar'
@@ -23,7 +23,7 @@ class CassandraServiceTest extends WebTestCase
         $this->assertTrue($type === 'list<int,varchar>');
 
         // nested list test
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'list' => array(
                 'list' => array(
                     'list' => 'int'
@@ -33,7 +33,7 @@ class CassandraServiceTest extends WebTestCase
         $this->assertTrue($type === 'list<list<list<int>>>');
 
         // simple map test
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'map' => array(
                 0 => 'ascii',
                 1 => 'bigint'
@@ -42,7 +42,7 @@ class CassandraServiceTest extends WebTestCase
         $this->assertTrue($type === 'map<ascii,bigint>');
 
         // nested map test
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'map' => array(
                 0 => 'double',
                 1 => array(
@@ -56,7 +56,7 @@ class CassandraServiceTest extends WebTestCase
         $this->assertTrue($type === 'map<double,map<ascii,ascii>>');
 
         // simple tuple test
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'tuple' => array(
                 0 => 'ascii',
                 1 => 'bigint',
@@ -66,7 +66,7 @@ class CassandraServiceTest extends WebTestCase
         $this->assertTrue($type === 'tuple<ascii,bigint,boolean>');
 
         // nested tuple test
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'tuple' => array(
                 0 => 'ascii',
                 1 => array(
@@ -83,7 +83,7 @@ class CassandraServiceTest extends WebTestCase
         $this->assertTrue($type === 'tuple<ascii,list<int>,map<varchar,uuid>>');
 
         // insane nested tuple, list and map
-        $type = CassandraService::parseFieldTypeFromArray(array(
+        $type = CqlshService::parseFieldTypeFromArray(array(
             'tuple' => array(
                 0 => array(
                     'tuple' => array(

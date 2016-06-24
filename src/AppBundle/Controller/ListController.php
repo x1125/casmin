@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
@@ -22,7 +22,7 @@ class ListController extends Controller
 
         try
         {
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($cluster));
 
             $response['columns'] = $cassandra->getColumns($keyspace, $columnfamily);
             $response['data'] = $cassandra->getData($keyspace, $columnfamily);

@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +16,7 @@ class ExecuteController extends Controller
     public function defaultAction()
     {
         return $this->render('AppBundle:execute:index.html.twig', array(
-            'clusters' => CassandraService::getClusters($this->container)
+            'clusters' => CqlshService::getClusters($this->container)
         ));
     }
 
@@ -34,16 +34,16 @@ class ExecuteController extends Controller
         {
             $params = $request->request->all();
 
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($params['cluster']));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($params['cluster']));
 
-            $output = $cassandra->command($params['command']);
+            $output = $cassandra->execute($params['command']);
 
             $response['status'] = true;
             $response['output'] = htmlspecialchars($output);
         }
         catch(\Exception $e)
         {
-            $response['message'] = $e->getMessage();
+            $response['message'] = htmlspecialchars($e->getMessage());
         }
 
         return new JsonResponse($response);

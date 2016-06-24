@@ -41,8 +41,8 @@
                         <div class="form-group">
                             <label for="version">Version</label>
                             <select name="version" id="version" class="form-control">
-                                {% for cassandraVersion in cassandraVersions %}
-                                    <option value="{{ cassandraVersion }}">{{ cassandraVersion }}</option>
+                                {% for cqlVersion in cqlVersions %}
+                                    <option value="{{ cqlVersion }}">{{ cqlVersion }}</option>
                                 {% endfor %}
                             </select>
                         </div>

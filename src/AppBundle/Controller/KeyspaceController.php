@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,9 +23,9 @@ class KeyspaceController extends Controller
 
         try
         {
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
+            $cqlsh = new CqlshService($this->container, CqlshService::clusterConfig($cluster));
 
-            $response['keyspaces'] = $cassandra->getKeyspaces();
+            $response['keyspaces'] = $cqlsh->getKeyspaces();
             $response['status'] = true;
         }
         catch (\Exception $e)
@@ -35,7 +35,7 @@ class KeyspaceController extends Controller
 
         return $this->render('AppBundle:keyspaces:index.html.twig', array(
             'response' => $response,
-            'keyspaceClasses' => CassandraService::keyspaceClasses
+            'keyspaceClasses' => CqlshService::keyspaceClasses
         ));
     }
 
@@ -53,7 +53,7 @@ class KeyspaceController extends Controller
         {
             $params = $request->request->all();
 
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($params['cluster']));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($params['cluster']));
 
             $query = $cassandra->addKeyspaceQuery($params);
 
@@ -75,7 +75,7 @@ class KeyspaceController extends Controller
     {
         try
         {
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($cluster));
 
             $query = $cassandra->removeKeyspaceQuery($keyspace);
             $cassandra->execute($query);

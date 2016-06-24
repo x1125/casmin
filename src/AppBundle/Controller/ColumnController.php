@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +24,7 @@ class ColumnController extends Controller
 
         try
         {
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($cluster));
 
             $response['columnFamilies'] = $cassandra->getColumnFamilies($keyspace);
             $response['columns'] = $cassandra->getColumns($keyspace, $columnfamily);
@@ -55,7 +55,7 @@ class ColumnController extends Controller
         {
             $params = $request->request->all();
 
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($params['cluster']));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($params['cluster']));
 
             $query = $cassandra->addColumnQuery($params);
 
@@ -77,7 +77,7 @@ class ColumnController extends Controller
     {
         try
         {
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($cluster));
 
             $query = $cassandra->removeColumnQuery($keyspace, $columnfamily, $column);
             $cassandra->execute($query);

@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,7 +27,7 @@ class ApiController extends Controller
 
         try
         {
-            $cassandra = new CassandraService($this->container, CassandraService::clusterConfig($cluster));
+            $cassandra = new CqlshService($this->container, CqlshService::clusterConfig($cluster));
 
             $ret = $cassandra->execute($query);
             $response['status'] = true;

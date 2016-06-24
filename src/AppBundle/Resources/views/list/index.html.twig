@@ -5,33 +5,40 @@
 <div class="container">
     <h3>List</h3>
 
-    {% for row in data %}
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Column</th>
-            <th>Value</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for column in columns %}
+    {% if status %}
+        {% for row in data %}
+        <table class="table">
+            <thead>
             <tr>
-                <td>{{ column.column_name }}</td>
-                <td>
-                    {% if row[column.column_name] is iterable %}
-                        {% for index, value in row[column.column_name] %}
-                            {{ index }}: {{ value }} <br />
-                        {% endfor %}
-                    {% else %}
-                        {{ row[column.column_name] }}
-                    {% endif %}
-                </td>
+                <th>Column</th>
+                <th>Value</th>
             </tr>
+            </thead>
+            <tbody>
+            {% for column in columns %}
+                <tr>
+                    <td>{{ column.column_name }}</td>
+                    <td>
+                        {% if row[column.column_name] is iterable %}
+                            {% for index, value in row[column.column_name] %}
+                                {{ index }}: {{ value }} <br />
+                            {% endfor %}
+                        {% else %}
+                            {{ row[column.column_name] }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        {% else %}
+            <hr>
+            <i>Nothing here.</i>
         {% endfor %}
-        </tbody>
-    </table>
-    <hr>
-    {% endfor %}
+    {% else %}
+        <div class="alert alert-danger" role="alert">Error: {{ message }}</div>
+    {% endif %}
 
 </div>
 {% endblock %}

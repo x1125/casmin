@@ -25,7 +25,11 @@
                     </td>
                     <td>{{ keyspace.durable_writes }}</td>
                     <td>{{ keyspace.strategy_class|split('.')|last }}</td>
-                    <td>{{ keyspace.strategy_options }}</td>
+                    <td>
+                        {% for strategy_option_key, strategy_option_value in keyspace.strategy_options %}
+                            {{ strategy_option_key }}: {{ strategy_option_value }}
+                        {% endfor %}
+                    </td>
                     <td>
                         <a href="{{ path('keyspaces_remove', { 'cluster': app.request.get('cluster'), 'keyspace': keyspace.keyspace_name }) }}" class="btn btn-sm btn-danger pull-right removeModalProcess">
                             <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>

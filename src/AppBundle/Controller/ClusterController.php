@@ -2,7 +2,7 @@
 
 namespace AppBundle\Controller;
 
-use AppBundle\Service\CassandraService;
+use AppBundle\Service\CqlshService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,8 +25,8 @@ class ClusterController extends Controller
     {
         // replace this example code with whatever you need
         return $this->render('AppBundle:clusters:index.html.twig', array(
-            'clusters' => CassandraService::getClusters($this->container),
-            'cassandraVersions' => CassandraService::cassandraVersions
+            'clusters' => CqlshService::getClusters($this->container),
+            'cqlVersions' => CqlshService::cqlVersions
         ));
     }
 
@@ -35,9 +35,9 @@ class ClusterController extends Controller
      */
     public function removeClusterAction($cluster)
     {
-        $buf = file_get_contents(CassandraService::getClusterConfigurationFile($this->container));
+        $buf = file_get_contents(CqlshService::getClusterConfigurationFile($this->container));
         $buf = str_replace($cluster . "\n", '', $buf);
-        file_put_contents(CassandraService::getClusterConfigurationFile($this->container), $buf);
+        file_put_contents(CqlshService::getClusterConfigurationFile($this->container), $buf);
 
         return $this->redirectToRoute('clusters');
     }
@@ -57,10 +57,10 @@ class ClusterController extends Controller
             $params = $request->request->all();
             $config = sprintf('%s:%s:%s', $params['host'], $params['port'], $params['version']);
 
-            if (in_array($config, CassandraService::getClusters($this->container)))
+            if (in_array($config, CqlshService::getClusters($this->container)))
                 throw new \Exception('Entry already exists');
 
-            file_put_contents(CassandraService::getClusterConfigurationFile($this->container), $config . "\n", FILE_APPEND);
+            file_put_contents(CqlshService::getClusterConfigurationFile($this->container), $config . "\n", FILE_APPEND);
 
             $response['status'] = true;
         }

@@ -47,13 +47,6 @@ $(function(){
                 return;
             }
 
-            // some error occurred
-            if (!response.status)
-            {
-                modalStatus.html('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
-                return;
-            }
-
             // preview query
             if (response.status)
             {
@@ -61,6 +54,8 @@ $(function(){
                 queryModal.find('.modal-body pre.query').text(response.query);
                 queryModal.find('.modal-body div.alert').remove();
                 queryModal.modal('show');
+            } else {
+                modalStatus.html('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
             }
         });
     });
@@ -91,18 +86,13 @@ $(function(){
             // remove previous alerts
             queryModal.find('.modal-body div.alert').remove();
 
-            // some error occurred
-            if (!response.status || !response.ret)
-            {
-                queryModal.find('.modal-body pre.query').after('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
-                return;
-            }
-
             // preview query
             if (response.status)
             {
                 queryModal.find('.modal-body pre.query').after('<div class="alert alert-success" role="alert">Success!</div>');
                 window.location.reload();
+            } else {
+                queryModal.find('.modal-body pre.query').after('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
             }
         });
     });
@@ -396,17 +386,12 @@ $(function(){
             // remove previous alerts
             $('#executeOutput').parent().find('div.alert').remove();
 
-            // some error occurred
-            if (!response.status || !response.output)
-            {
-                $('#executeOutput').after('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
-                return;
-            }
-
             // preview query
             if (response.status)
             {
                 $('#executeOutput').html(response.output);
+            } else {
+                $('#executeOutput').after('<div class="alert alert-danger" role="alert">' + response.message + '</div>');
             }
         });
     });

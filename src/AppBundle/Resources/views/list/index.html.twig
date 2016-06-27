@@ -21,7 +21,22 @@
                     <td>
                         {% if row[column.column_name] is iterable %}
                             {% for index, value in row[column.column_name] %}
-                                {{ index }}: {{ value }} <br />
+                                {{ index }}:
+                                {% if value is iterable %}
+                                    <table class="table table-bordered table-condensed">
+                                        <tbody>
+                                    {% for vKey, vValue in value %}
+                                        <tr>
+                                            <td>{{ vKey }}</td>
+                                            <td>{{ vValue }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    {{ value }}
+                                {% endif %}
+                                <br />
                             {% endfor %}
                         {% else %}
                             {{ row[column.column_name] }}

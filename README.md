@@ -54,12 +54,12 @@ php bin/console cache:clear --env=prod
 Screenshots
 -----------
 
-![Screenshot1](https://github.com/x1125/casmin/screenshots/screenshot1.png)
-![Screenshot2](https://github.com/x1125/casmin/screenshots/screenshot2.png)
-![Screenshot3](https://github.com/x1125/casmin/screenshots/screenshot3.png)
-![Screenshot4](https://github.com/x1125/casmin/screenshots/screenshot4.png)
-![Screenshot5](https://github.com/x1125/casmin/screenshots/screenshot5.png)
-![Screenshot6](https://github.com/x1125/casmin/screenshots/screenshot6.png)
-![Screenshot7](https://github.com/x1125/casmin/screenshots/screenshot7.png)
-![Screenshot8](https://github.com/x1125/casmin/screenshots/screenshot8.png)
-![Screenshot9](https://github.com/x1125/casmin/screenshots/screenshot9.png)
+![Screenshot1](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot1.png)
+![Screenshot2](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot2.png)
+![Screenshot3](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot3.png)
+![Screenshot4](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot4.png)
+![Screenshot5](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot5.png)
+![Screenshot6](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot6.png)
+![Screenshot7](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot7.png)
+![Screenshot8](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot8.png)
+![Screenshot9](https://raw.githubusercontent.com/x1125/casmin/master/screenshots/screenshot9.png)

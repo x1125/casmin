@@ -55,7 +55,7 @@ class ClusterController extends Controller
         try
         {
             $params = $request->request->all();
-            $config = sprintf('%s:%s:%s', $params['host'], $params['port'], $params['version']);
+            $config = sprintf('%s:%s:%s:%s', $params['host'], $params['port'], $params['version'], $params['name']);
 
             if (in_array($config, CqlshService::getClusters($this->container)))
                 throw new \Exception('Entry already exists');

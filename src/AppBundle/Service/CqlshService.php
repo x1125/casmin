@@ -19,13 +19,14 @@ class CqlshService {
     {
         $clusterConfig = explode(':', $cluster);
 
-        if (count($clusterConfig) !== 3)
+        if (count($clusterConfig) < 3 || count($clusterConfig) > 4)
             throw new \Exception('Invalid amount of cluster parameters');
 
         return array(
             'host' => $clusterConfig[0],
             'port' => $clusterConfig[1],
-            'version' => $clusterConfig[2]
+            'version' => $clusterConfig[2],
+            'name' => @$clusterConfig[3],
         );
     }
 
